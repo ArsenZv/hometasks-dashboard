@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Repeatable To-Do List</title>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <div id="app">
+        <h1>Repeatable To-Do List</h1>
+        <ul id="todo-list">
+            {% for item in items %}
+                <li>{{ item }}</li>
+            {% endfor %}
+        </ul>
+        <input type="text" id="new-item" placeholder="Add a new item">
+        <button id="add-button">Add</button>
+    </div>
+    <script src="/static/app.js"></script>
+</body>
+</html>
