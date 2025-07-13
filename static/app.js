@@ -1,22 +1,34 @@
 document.getElementById('add-button').addEventListener('click', () => {
-    const newItem = document.getElementById('new-item').value;
-    if (newItem) {
+    const newString = document.getElementById('new-item').value;
+    const newLifespan = parseFloat(document.getElementById('new-lifespan').value);
+    if (newString && !isNaN(newLifespan)) {
         fetch('/add', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ item: newItem })
+            body: JSON.stringify({ string: newString, lifespan: newLifespan })
         })
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                const list = document.getElementById('todo-list');
-                const listItem = document.createElement('li');
-                listItem.textContent = newItem;
-                list.appendChild(listItem);
-                document.getElementById('new-item').value = '';
+                location.reload();
             }
         });
     }
+});
+
+document.querySelectorAll('.refresh-icon').forEach(icon => {
+    icon.addEventListener('click', () => {
+        const itemIndex = icon.getAttribute('data-index');
+        fetch(`/refresh/${itemIndex}`, {
+            method: 'POST'
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            }
+        });
+    });
 });
