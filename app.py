@@ -1,10 +1,15 @@
 from flask import Flask, render_template, request, jsonify
 import json
-from datetime import datetime
+from datetime import datetime, timedelta
 
 app = Flask(__name__)
 app.config['TEMPLATES_AUTO_RELOAD'] = True
 app.jinja_env.auto_reload = True
+
+# Custom Jinja2 filter to convert string to datetime
+@app.template_filter('to_datetime')
+def to_datetime(value):
+    return datetime.strptime(value, '%Y-%m-%dT%H:%M:%S')
 
 DATA_FILE = 'data.json'
 
@@ -22,7 +27,8 @@ def save_data(data):
 @app.route('/')
 def index():
     items = load_data()
-    return render_template('index.html', items=items)
+    current_time = datetime.now()
+    return render_template('index.html', items=items, current_time=current_time)
 
 @app.route('/add', methods=['POST'])
 def add_item():
@@ -30,7 +36,7 @@ def add_item():
     new_item = {
         'string': request.json.get('string'),
         'lifespan': request.json.get('lifespan'),
-        'date_added': datetime.now().isoformat()
+        'date_added': datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
     }
     if new_item['string'] and isinstance(new_item['lifespan'], (int, float)):
         data.append(new_item)
@@ -42,7 +48,7 @@ def add_item():
 def refresh_item(item_index):
     data = load_data()
     if 0 <= item_index < len(data):
-        data[item_index]['date_added'] = datetime.now().isoformat()
+        data[item_index]['date_added'] = datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
         save_data(data)
         return jsonify({'success': True, 'item': data[item_index]})
     return jsonify({'success': False}), 400
