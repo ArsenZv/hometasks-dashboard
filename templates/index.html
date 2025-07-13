@@ -11,14 +11,17 @@
         <h1>HomeTasks-dashboard</h1>
         <ul id="todo-list">
             {% for item in items %}
-                {% set item_date = item.date_added | to_datetime %}
+                {% set item_date = item.last_refreshed | to_datetime %}
                 {% set time_difference = (current_time - item_date).total_seconds() / 86400 %}
-                <li class="{% if time_difference < item.lifespan / 2 and time_difference >= 0 %}green{% elif time_difference >= item.lifespan / 2 and time_difference < item.lifespan %}yellow{% else %}red{% endif %}" title="Lifespan: {{ item.lifespan }} days, Added: {{ item.date_added }}">
+                <li class="{% if time_difference < item.lifespan / 2 and time_difference >= 0 %}green{% elif time_difference >= item.lifespan / 2 and time_difference < item.lifespan %}yellow{% else %}red{% endif %}" title="Lifespan: {{ item.lifespan }} days, Added: {{ item.last_refreshed }}">
                     <span class="refresh-icon" data-index="{{ loop.index0 }}">↻</span>
                     {{ item.string }}
                 </li>
             {% endfor %}
         </ul>
+        <a href="/edit" id="edit-link" title="Edit Items">
+            <span class="gear-icon">⚙️</span>
+        </a>
         <input type="text" id="new-item" placeholder="Task">
         <input type="number" id="new-lifespan" placeholder="Lifespan (in days)" step="0.1">
         <button id="add-button">Add</button>

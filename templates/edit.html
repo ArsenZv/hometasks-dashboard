@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Items</title>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <div id="app">
+        <h1>Edit Items</h1>
+        <a href="/" id="dashboard-link" style="margin-left: 10px;">Dashboard</a>
+        <ul id="edit-list">
+            {% for item in items %}
+                <li>
+                    <input type="text" value="{{ item.string }}" class="edit-string" data-index="{{ loop.index0 }}">
+                    <input type="number" value="{{ item.lifespan }}" class="edit-lifespan" data-index="{{ loop.index0 }}" step="0.1">
+                    <input type="text" value="{{ item.last_refreshed }}" class="edit-date" data-index="{{ loop.index0 }}">
+                    <button class="delete-button" data-index="{{ loop.index0 }}">Delete</button>
+                </li>
+            {% endfor %}
+        </ul>
+        <button id="save-button">Save Changes</button>
+        <div id="confirmation-message" style="display: none; color: green; margin-top: 10px;">Changes saved successfully!</div>
+    </div>
+    <script src="/static/edit.js"></script>
+</body>
+</html>

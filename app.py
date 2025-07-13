@@ -36,7 +36,7 @@ def add_item():
     new_item = {
         'string': request.json.get('string'),
         'lifespan': request.json.get('lifespan'),
-        'date_added': datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
+        'last_refreshed': datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
     }
     if new_item['string'] and isinstance(new_item['lifespan'], (int, float)):
         data.append(new_item)
@@ -48,10 +48,30 @@ def add_item():
 def refresh_item(item_index):
     data = load_data()
     if 0 <= item_index < len(data):
-        data[item_index]['date_added'] = datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
+        data[item_index]['last_refreshed'] = datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
         save_data(data)
         return jsonify({'success': True, 'item': data[item_index]})
     return jsonify({'success': False}), 400
+
+@app.route('/delete/<int:item_index>', methods=['POST'])
+def delete_item(item_index):
+    data = load_data()
+    if 0 <= item_index < len(data):
+        del data[item_index]
+        save_data(data)
+        return jsonify({'success': True})
+    return jsonify({'success': False}), 400
+
+@app.route('/edit')
+def edit():
+    items = load_data()
+    return render_template('edit.html', items=items)
+
+@app.route('/save', methods=['POST'])
+def save_changes():
+    updated_items = request.json.get('items', [])
+    save_data(updated_items)
+    return jsonify({'success': True})
 
 if __name__ == '__main__':
     app.run(debug=True)
