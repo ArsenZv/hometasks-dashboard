@@ -1,0 +1,10 @@
+version: '3.8'
+
+services:
+  hometasks-dashboard:
+    image: arsenzvdocker/hometasks-dashboard:latest
+    container_name: hometasks-dashboard
+    ports:
+      - "5555:5555"
+    volumes:
+      - ./data:/app/data

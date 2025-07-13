@@ -11,7 +11,7 @@ app.jinja_env.auto_reload = True
 def to_datetime(value):
     return datetime.strptime(value, '%Y-%m-%dT%H:%M:%S')
 
-DATA_FILE = 'data.json'
+DATA_FILE = 'data/data.json'
 
 def load_data():
     try:
@@ -74,4 +74,4 @@ def save_changes():
     return jsonify({'success': True})
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True, host='0.0.0.0', port=5555)
