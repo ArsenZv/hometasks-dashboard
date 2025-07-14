@@ -1,3 +1,9 @@
+document.addEventListener('DOMContentLoaded', () => {
+    const todayDateElement = document.getElementById('today-date');
+    const today = new Date();
+    todayDateElement.textContent = `Today: ${today.toLocaleDateString()}`;
+});
+
 document.getElementById('add-button').addEventListener('click', () => {
     const newString = document.getElementById('new-item').value;
     const newLifespan = parseFloat(document.getElementById('new-lifespan').value);

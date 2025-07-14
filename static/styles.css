@@ -23,11 +23,27 @@ body {
 }
 
 #todo-list li {
-    margin: 5px 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px;
+    position: relative;
+    margin-bottom: 10px; /* Added margin between item boxes */
 }
 
 li {
     position: relative;
+}
+
+.refresh-icon {
+    position: absolute;
+    left: 10px;
+    cursor: pointer;
+    font-size: 25px; /* Increased font size */
+}
+
+.item-text {
+    font-size: 18px; /* Increased font size */
 }
 
 /* li[title]:hover::after {
@@ -51,13 +67,19 @@ input, button {
 }
 
 .green {
-    color: green;
+    border: 2px solid green;
+    border-radius: 8px;
+    background-color: #ccffcc; /* Dimmer green */
 }
 
 .red {
-    color: red;
+    border: 2px solid red;
+    border-radius: 8px;
+    background-color: #ffcccc; /* Dimmer red */
 }
 
 .yellow {
-    color: #d4a017; /* Dark yellow for better readability on white background */
+    border: 2px solid #d4a017;
+    border-radius: 8px;
+    background-color: #fff4cc; /* Dimmer yellow */
 }
