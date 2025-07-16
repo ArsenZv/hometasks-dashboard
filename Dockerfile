@@ -7,6 +7,10 @@ WORKDIR /app
 # Copy the application files into the container
 COPY . /app
 
+# Set the VERSION environment variable to the latest git tag
+ARG APP_VERSION
+ENV APP_VERSION=$APP_VERSION
+
 # Install the required dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 

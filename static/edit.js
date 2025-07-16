@@ -46,3 +46,8 @@ document.getElementById('save-button').addEventListener('click', () => {
         }
     });
 });
+
+document.addEventListener('DOMContentLoaded', () => {
+    const appVersion = APP_VERSION || 'Unknown';
+    document.getElementById('app-version').textContent = `Current Version: ${appVersion}`;
+});

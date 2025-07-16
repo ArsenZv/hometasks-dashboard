@@ -2,6 +2,7 @@ from flask import Flask, render_template, request, jsonify
 import json
 from datetime import datetime, timedelta
 from subprocess import check_output
+import os
 
 app = Flask(__name__)
 app.config['TEMPLATES_AUTO_RELOAD'] = True
@@ -66,7 +67,8 @@ def delete_item(item_index):
 @app.route('/edit')
 def edit():
     items = load_data()
-    return render_template('edit.html', items=items)
+    app_version = os.getenv('APP_VERSION', 'Unknown')
+    return render_template('edit.html', items=items, app_version=app_version)
 
 @app.route('/save', methods=['POST'])
 def save_changes():
