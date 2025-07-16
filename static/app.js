@@ -1,7 +1,8 @@
 document.addEventListener('DOMContentLoaded', () => {
     const todayDateElement = document.getElementById('today-date');
     const today = new Date();
-    todayDateElement.textContent = `Today: ${today.toLocaleDateString()}`;
+    const formattedDate = `${String(today.getDate()).padStart(2, '0')}/${String(today.getMonth() + 1).padStart(2, '0')}/${String(today.getFullYear()).slice(-2)}`;
+    todayDateElement.textContent = `Today: ${formattedDate}`;
 });
 
 document.getElementById('add-button').addEventListener('click', () => {

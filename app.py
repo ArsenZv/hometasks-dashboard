@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request, jsonify
 import json
 from datetime import datetime, timedelta
+from subprocess import check_output
 
 app = Flask(__name__)
 app.config['TEMPLATES_AUTO_RELOAD'] = True
@@ -72,6 +73,14 @@ def save_changes():
     updated_items = request.json.get('items', [])
     save_data(updated_items)
     return jsonify({'success': True})
+
+@app.route('/version')
+def get_version():
+    try:
+        version = check_output(['git', 'describe', '--tags']).strip().decode('utf-8')
+        return version
+    except Exception as e:
+        return "Unknown Version"
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5555)
