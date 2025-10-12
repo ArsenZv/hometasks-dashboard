@@ -30,7 +30,7 @@ jobs:
         git fetch --tags
         TAG=$(git tag --sort=-v:refname | head -n 1)
         if [ -z "$TAG" ]; then
-          echo "tag=0.0.0" >> $GITHUB_ENV
+          echo "tag=0" >> $GITHUB_ENV
         else
           echo "tag=$TAG" >> $GITHUB_ENV
         fi
@@ -38,12 +38,8 @@ jobs:
     - name: Increment the tag
       id: increment-tag
       run: |
-        IFS='.' read -r -a parts <<< "$tag"
-        major=${parts[0]}
-        minor=${parts[1]}
-        patch=${parts[2]}
-        patch=$((patch + 1))
-        new_tag="$major.$minor.$patch"
+        tag=$((tag + 1))
+        new_tag="$tag"
         echo "new_tag=$new_tag" >> $GITHUB_ENV
 
     - name: Create and push new tag
