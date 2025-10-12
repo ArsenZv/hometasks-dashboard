@@ -15,6 +15,7 @@ body {
     padding: 20px;
     border-radius: 8px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    width: min(90vw, 700px);
 }
 
 #todo-list {
@@ -114,4 +115,75 @@ input, button {
     overflow-y: auto; /* Enable vertical scrolling */
     border: 1px solid #ccc; /* Optional: Add a border for better visibility */
     padding: 10px; /* Optional: Add padding for better spacing */
+}
+
+#calendar-wrapper {
+    margin-bottom: 20px;
+}
+
+#calendar-wrapper h2 {
+    margin: 10px 0;
+    font-size: 18px;
+}
+
+.calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 16px);
+    grid-auto-rows: 16px;
+    column-gap: 4px;
+    row-gap: 4px;
+    justify-content: center;
+}
+
+.day-cell {
+    width: 16px;
+    height: 16px;
+    border-radius: 3px;
+    background-color: #ebedf0;
+}
+
+.day-cell.empty {
+    background-color: transparent;
+}
+
+.day-cell.level-1,
+.legend-square.level-1 {
+    background-color: #9be9a8;
+}
+
+.day-cell.level-2,
+.legend-square.level-2 {
+    background-color: #40c463;
+}
+
+.day-cell.level-3,
+.legend-square.level-3 {
+    background-color: #30a14e;
+}
+
+.day-cell.level-4,
+.legend-square.level-4 {
+    background-color: #216e39;
+}
+
+.legend-square {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border-radius: 3px;
+    background-color: #ebedf0;
+}
+
+#calendar-legend {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 8px;
+    font-size: 12px;
+}
+
+.legend-levels {
+    display: flex;
+    gap: 4px;
 }

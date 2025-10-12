@@ -9,6 +9,21 @@
 <body>
     <div id="app">
         <h1>HomeTasks-dashboard</h1>
+        <div id="calendar-wrapper">
+            <h2>Refresh Activity (Last 30 Days)</h2>
+            <div id="refresh-calendar" class="calendar-grid"></div>
+            <div id="calendar-legend">
+                <span>Less</span>
+                <div class="legend-levels">
+                    <span class="legend-square level-0"></span>
+                    <span class="legend-square level-1"></span>
+                    <span class="legend-square level-2"></span>
+                    <span class="legend-square level-3"></span>
+                    <span class="legend-square level-4"></span>
+                </div>
+                <span>More</span>
+            </div>
+        </div>
         <p id="today-date"></p>
         <ul id="todo-list">
             {% for item in items %}
@@ -29,6 +44,9 @@
         <input type="number" id="new-lifespan" placeholder="Lifespan (in days)" step="0.1">
         <button id="add-button">Add</button>
     </div>
+    <script>
+        const CALENDAR_DATA = {{ calendar_data | tojson }};
+    </script>
     <script src="/static/app.js"></script>
 </body>
 </html>
