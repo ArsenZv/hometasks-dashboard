@@ -9,19 +9,50 @@
 <body>
     <div id="app">
         <h1>HomeTasks-dashboard</h1>
-        <div id="calendar-wrapper">
-            <h2>Refresh Activity (Last 30 Days)</h2>
-            <div id="refresh-calendar" class="calendar-grid"></div>
-            <div id="calendar-legend">
-                <span>Less</span>
-                <div class="legend-levels">
-                    <span class="legend-square level-0"></span>
-                    <span class="legend-square level-1"></span>
-                    <span class="legend-square level-2"></span>
-                    <span class="legend-square level-3"></span>
-                    <span class="legend-square level-4"></span>
+        <div id="dashboard-row">
+            <div id="calendar-wrapper" class="dashboard-item">
+                <h2>30 Days Activity</h2>
+                <div id="refresh-calendar" class="calendar-grid"></div>
+                <div id="calendar-legend">
+                    <span>Less</span>
+                    <div class="legend-levels">
+                        <span class="legend-square level-0"></span>
+                        <span class="legend-square level-1"></span>
+                        <span class="legend-square level-2"></span>
+                        <span class="legend-square level-3"></span>
+                        <span class="legend-square level-4"></span>
+                    </div>
+                    <span>More</span>
                 </div>
-                <span>More</span>
+            </div>
+            <div id="oldest-tasks-wrapper" class="dashboard-item">
+                <h2>Oldest Tasks</h2>
+                <div id="oldest-tasks-list">
+                    <div class="oldest-task-placeholder">No tasks yet</div>
+                </div>
+            </div>
+            <div id="statistics-wrapper" class="dashboard-item">
+                <h2>Task Distribution</h2>
+                <div id="stats-bars">
+                    <div class="stat-bar-container">
+                        <div class="stat-bar-wrapper">
+                            <div class="stat-bar green-bar" id="green-bar"></div>
+                            <span class="stat-count" id="green-count">0</span>
+                        </div>
+                    </div>
+                    <div class="stat-bar-container">
+                        <div class="stat-bar-wrapper">
+                            <div class="stat-bar yellow-bar" id="yellow-bar"></div>
+                            <span class="stat-count" id="yellow-count">0</span>
+                        </div>
+                    </div>
+                    <div class="stat-bar-container">
+                        <div class="stat-bar-wrapper">
+                            <div class="stat-bar red-bar" id="red-bar"></div>
+                            <span class="stat-count" id="red-count">0</span>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
         <p id="today-date"></p>
