@@ -216,3 +216,23 @@ document.querySelectorAll('.refresh-icon').forEach(icon => {
         });
     });
 });
+
+// Dashboard toggle functionality
+const dashboardToggle = document.getElementById('dashboard-toggle');
+const dashboardRow = document.getElementById('dashboard-row');
+
+if (dashboardToggle && dashboardRow) {
+    dashboardToggle.addEventListener('click', () => {
+        const isHidden = dashboardRow.classList.contains('hidden');
+        
+        if (isHidden) {
+            dashboardRow.classList.remove('hidden');
+            dashboardToggle.setAttribute('aria-expanded', 'true');
+            dashboardToggle.innerHTML = '<span class="toggle-icon">▼</span> Hide Statistics';
+        } else {
+            dashboardRow.classList.add('hidden');
+            dashboardToggle.setAttribute('aria-expanded', 'false');
+            dashboardToggle.innerHTML = '<span class="toggle-icon">▼</span> Show Statistics';
+        }
+    });
+}

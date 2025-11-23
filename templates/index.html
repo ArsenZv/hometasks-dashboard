@@ -8,8 +8,11 @@
 </head>
 <body>
     <div id="app">
-        <h1>HomeTasks-dashboard</h1>
-        <div id="dashboard-row">
+        <h1>HomeTasks Dashboard</h1>
+        <button id="dashboard-toggle" class="toggle-button" aria-expanded="false">
+            <span class="toggle-icon">▼</span> Show Statistics
+        </button>
+        <div id="dashboard-row" class="hidden">
             <div id="calendar-wrapper" class="dashboard-item">
                 <h2>30 Days Activity</h2>
                 <div id="refresh-calendar" class="calendar-grid"></div>
