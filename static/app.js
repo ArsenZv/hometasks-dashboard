@@ -1,8 +1,8 @@
-function determineLevel(count, maxCount) {
-    if (!maxCount) {
+function determineLevel(count, totalTasks) {
+    if (!totalTasks) {
         return 0;
     }
-    const ratio = count / maxCount;
+    const ratio = count / totalTasks;
     if (ratio >= 0.75) {
         return 4;
     }
@@ -18,14 +18,13 @@ function determineLevel(count, maxCount) {
     return 0;
 }
 
-function renderCalendar(data) {
+function renderCalendar(data, totalTasks) {
     const calendarElement = document.getElementById('refresh-calendar');
     if (!calendarElement || !Array.isArray(data) || data.length === 0) {
         return;
     }
 
     calendarElement.innerHTML = '';
-    const maxCount = data.reduce((max, entry) => Math.max(max, entry.count || 0), 0);
     const firstDate = new Date(`${data[0].date}T00:00:00`);
     const leadingEmpty = firstDate.getDay();
 
@@ -39,7 +38,7 @@ function renderCalendar(data) {
     data.forEach((entry) => {
         const cell = document.createElement('span');
         cell.classList.add('day-cell');
-        const level = determineLevel(entry.count || 0, maxCount);
+        const level = determineLevel(entry.count || 0, totalTasks);
         cell.classList.add(`level-${level}`);
         const dateObj = new Date(`${entry.date}T00:00:00`);
         const count = entry.count || 0;
@@ -55,8 +54,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const formattedDate = `${String(today.getDate()).padStart(2, '0')}/${String(today.getMonth() + 1).padStart(2, '0')}/${String(today.getFullYear()).slice(-2)}`;
     todayDateElement.textContent = `Today: ${formattedDate}`;
 
-    if (typeof CALENDAR_DATA !== 'undefined') {
-        renderCalendar(CALENDAR_DATA);
+    if (typeof CALENDAR_DATA !== 'undefined' && typeof TOTAL_TASKS !== 'undefined') {
+        renderCalendar(CALENDAR_DATA, TOTAL_TASKS);
     }
 });
 
