@@ -202,9 +202,12 @@ document.getElementById('add-button').addEventListener('click', () => {
     }
 });
 
-document.querySelectorAll('.refresh-icon').forEach(icon => {
-    icon.addEventListener('click', () => {
-        const itemIndex = icon.getAttribute('data-index');
+document.querySelectorAll('#todo-list li').forEach(item => {
+    item.addEventListener('click', (e) => {
+        // If the click originated from the info icon, do nothing (handled by stopPropagation in HTML, but good to be safe)
+        if (e.target.classList.contains('info-icon')) return;
+
+        const itemIndex = item.getAttribute('data-index');
         fetch(`/refresh/${itemIndex}`, {
             method: 'POST'
         })

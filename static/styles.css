@@ -45,32 +45,39 @@ body {
     padding: 20px;
     position: relative;
     min-height: 80px;
+    cursor: pointer;
+    transition: transform 0.1s;
+}
+
+#todo-list li:active {
+    transform: scale(0.98);
 }
 
 li {
     position: relative;
 }
 
-.refresh-icon {
+/* .refresh-icon {
     position: absolute;
     left: 10px;
     top: 50%;
     transform: translateY(-50%);
     cursor: pointer;
-    font-size: 25px; /* Increased font size */
-}
+    font-size: 25px; 
+} */
 
 .item-text {
-    font-size: 18px; /* Increased font size */
+    font-size: 35px; /* Increased font size */
+    font-weight: bold;
 }
 
 .info-icon {
     position: absolute;
     right: 10px;
-    top: 50%;
-    transform: translateY(-50%);
+    top: 10px;
     cursor: pointer;
     font-size: 20px;
+    z-index: 2; /* Ensure it's above the list item click area if needed, though stopPropagation handles logic */
 }
 
 li.show-info::after {
