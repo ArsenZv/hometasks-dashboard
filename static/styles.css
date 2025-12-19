@@ -205,6 +205,10 @@ input, button {
     text-align: center;
 }
 
+#calendar-month {
+    padding-top: 10px;
+}
+
 .calendar-grid {
     display: grid;
     grid-template-columns: repeat(7, 16px);
@@ -382,5 +386,10 @@ input, button {
 @media (max-width: 530px) {
     #stats-bars {
         padding: 0px;
+    }
+}
+@media (max-width: 505px) {
+    #calendar-month {
+        padding-top: 0px;
     }
 }
