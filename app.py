@@ -94,11 +94,13 @@ def index():
     history = sync_history_with_items(load_history(), items)
     save_history(history)
     calendar_data = build_calendar_data(history)
+    total_tasks = len(items)
     return render_template(
         'index.html',
         items=items,
         current_time=current_time,
-        calendar_data=calendar_data
+        calendar_data=calendar_data,
+        total_tasks=total_tasks
     )
 
 @app.route('/add', methods=['POST'])

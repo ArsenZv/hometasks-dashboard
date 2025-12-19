@@ -8,31 +8,85 @@
 </head>
 <body>
     <div id="app">
-        <h1>HomeTasks-dashboard</h1>
-        <div id="calendar-wrapper">
-            <h2>Refresh Activity (Last 30 Days)</h2>
-            <div id="refresh-calendar" class="calendar-grid"></div>
-            <div id="calendar-legend">
-                <span>Less</span>
-                <div class="legend-levels">
-                    <span class="legend-square level-0"></span>
-                    <span class="legend-square level-1"></span>
-                    <span class="legend-square level-2"></span>
-                    <span class="legend-square level-3"></span>
-                    <span class="legend-square level-4"></span>
+        <h1>HomeTasks Dashboard</h1>
+        <button id="dashboard-toggle" class="toggle-button" aria-expanded="false">
+            <span class="toggle-icon">▼</span> Show Statistics
+        </button>
+        <div id="dashboard-row" class="hidden no-transition">
+            <div id="calendar-wrapper" class="dashboard-item">
+                <h2>30 Days Activity</h2>
+                <div id="calendar-month" class="calendar-month">
+                    <div id="refresh-calendar" class="calendar-grid"></div>
                 </div>
-                <span>More</span>
+                <div id="calendar-legend">
+                    <span>⬇️</span>
+                    <div class="legend-levels">
+                        <span class="legend-square level-0"></span>
+                        <span class="legend-square level-1"></span>
+                        <span class="legend-square level-2"></span>
+                        <span class="legend-square level-3"></span>
+                        <span class="legend-square level-4"></span>
+                    </div>
+                    <span>⬆️</span>
+                </div>
+            </div>
+            <div id="oldest-tasks-wrapper" class="dashboard-item">
+                <h2>Oldest Tasks</h2>
+                <div id="oldest-tasks-list">
+                    <div class="oldest-task-placeholder">No tasks yet</div>
+                </div>
+            </div>
+            <div id="statistics-wrapper" class="dashboard-item">
+                <h2>Task Distribution</h2>
+                <div id="stats-bars">
+                    <div class="stat-bar-container">
+                        <div class="stat-bar-wrapper">
+                            <div class="stat-bar green-bar" id="green-bar"></div>
+                            <span class="stat-count" id="green-count">0</span>
+                        </div>
+                    </div>
+                    <div class="stat-bar-container">
+                        <div class="stat-bar-wrapper">
+                            <div class="stat-bar yellow-bar" id="yellow-bar"></div>
+                            <span class="stat-count" id="yellow-count">0</span>
+                        </div>
+                    </div>
+                    <div class="stat-bar-container">
+                        <div class="stat-bar-wrapper">
+                            <div class="stat-bar red-bar" id="red-bar"></div>
+                            <span class="stat-count" id="red-count">0</span>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
+        <script>
+            (function() {
+                const dashboardRow = document.getElementById('dashboard-row');
+                const dashboardToggle = document.getElementById('dashboard-toggle');
+                const savedState = localStorage.getItem('dashboardOpen');
+                
+                if (savedState === 'true') {
+                    dashboardRow.classList.remove('hidden');
+                    dashboardToggle.setAttribute('aria-expanded', 'true');
+                    dashboardToggle.innerHTML = '<span class="toggle-icon">▼</span> Hide Statistics';
+                }
+                
+                // Remove no-transition class after initial render to enable animations for future interactions
+                // Using setTimeout to ensure it runs after the paint
+                setTimeout(() => {
+                    dashboardRow.classList.remove('no-transition');
+                }, 100);
+            })();
+        </script>
         <p id="today-date"></p>
         <ul id="todo-list">
             {% for item in items %}
                 {% set item_date = item.last_refreshed | to_datetime %}
                 {% set time_difference = (current_time - item_date).total_seconds() / 86400 %}
-                <li class="{% if time_difference < item.lifespan / 2 and time_difference >= 0 %}green{% elif time_difference >= item.lifespan / 2 and time_difference < item.lifespan %}yellow{% else %}red{% endif %}" title="Last refreshed: {{ item.last_refreshed }} || Lifespan: {{ item.lifespan }} days">
-                    <span class="refresh-icon" data-index="{{ loop.index0 }}">↻</span>
+                <li class="{% if time_difference < item.lifespan / 2 and time_difference >= 0 %}green{% elif time_difference >= item.lifespan / 2 and time_difference < item.lifespan %}yellow{% else %}red{% endif %}" title="Last refreshed: {{ item.last_refreshed }} || Lifespan: {{ item.lifespan }} days" data-index="{{ loop.index0 }}">
                     <span class="item-text">{{ item.string }}</span>
-                    <span class="info-icon" onclick="this.parentElement.classList.toggle('show-info')">ℹ️</span>
+                    <span class="info-icon" onclick="event.stopPropagation(); this.parentElement.classList.toggle('show-info')">ℹ️</span>
                     <br>
                 </li>
             {% endfor %}
@@ -46,6 +100,7 @@
     </div>
     <script>
         const CALENDAR_DATA = {{ calendar_data | tojson }};
+        const TOTAL_TASKS = {{ total_tasks }};
     </script>
     <script src="/static/app.js"></script>
 </body>
