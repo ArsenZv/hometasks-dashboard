@@ -159,7 +159,7 @@ function renderOldestTasks() {
         
         const infoDiv = document.createElement('div');
         infoDiv.className = 'oldest-task-info';
-        infoDiv.textContent = `Last refreshed: ${daysAgo} days ago`;
+        infoDiv.textContent = `${daysAgo} days ago`;
         
         taskDiv.appendChild(titleDiv);
         taskDiv.appendChild(infoDiv);
@@ -202,9 +202,12 @@ document.getElementById('add-button').addEventListener('click', () => {
     }
 });
 
-document.querySelectorAll('.refresh-icon').forEach(icon => {
-    icon.addEventListener('click', () => {
-        const itemIndex = icon.getAttribute('data-index');
+document.querySelectorAll('#todo-list li').forEach(item => {
+    item.addEventListener('click', (e) => {
+        // If the click originated from the info icon, do nothing (handled by stopPropagation in HTML, but good to be safe)
+        if (e.target.classList.contains('info-icon')) return;
+
+        const itemIndex = item.getAttribute('data-index');
         fetch(`/refresh/${itemIndex}`, {
             method: 'POST'
         })
@@ -222,17 +225,23 @@ const dashboardToggle = document.getElementById('dashboard-toggle');
 const dashboardRow = document.getElementById('dashboard-row');
 
 if (dashboardToggle && dashboardRow) {
-    dashboardToggle.addEventListener('click', () => {
-        const isHidden = dashboardRow.classList.contains('hidden');
-        
-        if (isHidden) {
+    // Function to update UI based on state
+    const setDashboardState = (show) => {
+        if (show) {
             dashboardRow.classList.remove('hidden');
             dashboardToggle.setAttribute('aria-expanded', 'true');
             dashboardToggle.innerHTML = '<span class="toggle-icon">▼</span> Hide Statistics';
+            localStorage.setItem('dashboardOpen', 'true');
         } else {
             dashboardRow.classList.add('hidden');
             dashboardToggle.setAttribute('aria-expanded', 'false');
             dashboardToggle.innerHTML = '<span class="toggle-icon">▼</span> Show Statistics';
+            localStorage.setItem('dashboardOpen', 'false');
         }
+    };
+
+    dashboardToggle.addEventListener('click', () => {
+        const isHidden = dashboardRow.classList.contains('hidden');
+        setDashboardState(isHidden);
     });
 }
