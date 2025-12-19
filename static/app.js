@@ -159,7 +159,7 @@ function renderOldestTasks() {
         
         const infoDiv = document.createElement('div');
         infoDiv.className = 'oldest-task-info';
-        infoDiv.textContent = `Last refreshed: ${daysAgo} days ago`;
+        infoDiv.textContent = `${daysAgo} days ago`;
         
         taskDiv.appendChild(titleDiv);
         taskDiv.appendChild(infoDiv);

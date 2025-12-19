@@ -33,15 +33,18 @@ body {
     overflow-y: auto; /* Enable vertical scrolling */
     /* border: 1px solid #ccc;  */
     padding: 10px; /* Optional: Add padding for better spacing */
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
 }
 
 #todo-list li {
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 10px;
+    padding: 20px;
     position: relative;
-    margin-bottom: 10px; /* Added margin between item boxes */
+    min-height: 80px;
 }
 
 li {
@@ -51,6 +54,8 @@ li {
 .refresh-icon {
     position: absolute;
     left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
     cursor: pointer;
     font-size: 25px; /* Increased font size */
 }
@@ -62,6 +67,8 @@ li {
 .info-icon {
     position: absolute;
     right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
     cursor: pointer;
     font-size: 20px;
 }
@@ -257,7 +264,7 @@ input, button {
 #stats-bars {
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 5px;
     padding: 15px;
 }
 
@@ -355,4 +362,18 @@ input, button {
     color: #666;
     text-align: center;
     width: 100%;
+}
+
+/* Mobile-friendly if necessary */
+
+/* @media (max-width: 300px) {
+    #todo-list {
+        grid-template-columns: 1fr;
+    }
+} */
+
+@media (max-width: 530px) {
+    #stats-bars {
+        padding: 0px;
+    }
 }
