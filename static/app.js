@@ -225,17 +225,23 @@ const dashboardToggle = document.getElementById('dashboard-toggle');
 const dashboardRow = document.getElementById('dashboard-row');
 
 if (dashboardToggle && dashboardRow) {
-    dashboardToggle.addEventListener('click', () => {
-        const isHidden = dashboardRow.classList.contains('hidden');
-        
-        if (isHidden) {
+    // Function to update UI based on state
+    const setDashboardState = (show) => {
+        if (show) {
             dashboardRow.classList.remove('hidden');
             dashboardToggle.setAttribute('aria-expanded', 'true');
             dashboardToggle.innerHTML = '<span class="toggle-icon">▼</span> Hide Statistics';
+            localStorage.setItem('dashboardOpen', 'true');
         } else {
             dashboardRow.classList.add('hidden');
             dashboardToggle.setAttribute('aria-expanded', 'false');
             dashboardToggle.innerHTML = '<span class="toggle-icon">▼</span> Show Statistics';
+            localStorage.setItem('dashboardOpen', 'false');
         }
+    };
+
+    dashboardToggle.addEventListener('click', () => {
+        const isHidden = dashboardRow.classList.contains('hidden');
+        setDashboardState(isHidden);
     });
 }

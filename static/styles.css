@@ -393,3 +393,7 @@ input, button {
         padding-top: 0px;
     }
 }
+
+.no-transition {
+    transition: none !important;
+}

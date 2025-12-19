@@ -12,7 +12,7 @@
         <button id="dashboard-toggle" class="toggle-button" aria-expanded="false">
             <span class="toggle-icon">▼</span> Show Statistics
         </button>
-        <div id="dashboard-row" class="hidden">
+        <div id="dashboard-row" class="hidden no-transition">
             <div id="calendar-wrapper" class="dashboard-item">
                 <h2>30 Days Activity</h2>
                 <div id="calendar-month" class="calendar-month">
@@ -60,6 +60,25 @@
                 </div>
             </div>
         </div>
+        <script>
+            (function() {
+                const dashboardRow = document.getElementById('dashboard-row');
+                const dashboardToggle = document.getElementById('dashboard-toggle');
+                const savedState = localStorage.getItem('dashboardOpen');
+                
+                if (savedState === 'true') {
+                    dashboardRow.classList.remove('hidden');
+                    dashboardToggle.setAttribute('aria-expanded', 'true');
+                    dashboardToggle.innerHTML = '<span class="toggle-icon">▼</span> Hide Statistics';
+                }
+                
+                // Remove no-transition class after initial render to enable animations for future interactions
+                // Using setTimeout to ensure it runs after the paint
+                setTimeout(() => {
+                    dashboardRow.classList.remove('no-transition');
+                }, 100);
+            })();
+        </script>
         <p id="today-date"></p>
         <ul id="todo-list">
             {% for item in items %}
