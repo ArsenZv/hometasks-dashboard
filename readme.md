@@ -18,15 +18,29 @@ HomeTasks Dashboard is a web application designed to help users manage their dai
    ```bash
    cd hometasks-dashboard
    ```
-3. Install dependencies:
+3. Create and activate a virtual environment:
+   ```bash
+   # Create virtual environment
+   python3 -m venv venv
+   
+   # Activate virtual environment
+   # On macOS/Linux:
+   source venv/bin/activate
+   
+   # On Windows:
+   # venv\Scripts\activate
+   ```
+4. Install dependencies:
    ```bash
    pip install -r requirements.txt
    ```
-4. Run the application:
+5. Run the application:
    ```bash
    python app.py
    ```
-5. Open the application in your browser at `http://localhost:5555`.
+6. Open the application in your browser at `http://localhost:5555`.
+
+**Note:** Always activate the virtual environment before running the application or installing dependencies.
 
 ## Using Docker-Compose
 

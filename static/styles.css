@@ -18,44 +18,66 @@ body {
     width: min(90vw, 700px);
 }
 
+#app h1 {
+    margin-bottom: 2px;
+}
+
+#today-date {
+    font-weight: bold;
+}
+
 #todo-list {
     list-style: none;
     padding: 0;
     max-height: 300px; /* Set a static height */
     overflow-y: auto; /* Enable vertical scrolling */
-    border: 1px solid #ccc; /* Optional: Add a border for better visibility */
+    /* border: 1px solid #ccc;  */
     padding: 10px; /* Optional: Add padding for better spacing */
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
 }
 
 #todo-list li {
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 10px;
+    padding: 20px;
     position: relative;
-    margin-bottom: 10px; /* Added margin between item boxes */
+    min-height: 80px;
+    cursor: pointer;
+    transition: transform 0.1s;
+}
+
+#todo-list li:active {
+    transform: scale(0.98);
 }
 
 li {
     position: relative;
 }
 
-.refresh-icon {
+/* .refresh-icon {
     position: absolute;
     left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
     cursor: pointer;
-    font-size: 25px; /* Increased font size */
-}
+    font-size: 25px; 
+} */
 
 .item-text {
-    font-size: 18px; /* Increased font size */
+    font-size: 35px; /* Increased font size */
+    font-weight: bold;
 }
 
 .info-icon {
     position: absolute;
     right: 10px;
+    top: 10px;
     cursor: pointer;
     font-size: 20px;
+    z-index: 2; /* Ensure it's above the list item click area if needed, though stopPropagation handles logic */
 }
 
 li.show-info::after {
@@ -117,13 +139,74 @@ input, button {
     padding: 10px; /* Optional: Add padding for better spacing */
 }
 
-#calendar-wrapper {
+#dashboard-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
     margin-bottom: 20px;
+    align-items: flex-start;
+    transition: max-height 0.3s ease-out, opacity 0.3s ease-out, margin 0.3s ease-out;
+    overflow: hidden;
+    max-height: 1000px;
+    opacity: 1;
 }
 
-#calendar-wrapper h2 {
+#dashboard-row.hidden {
+    max-height: 0;
+    opacity: 0;
+    margin-bottom: 0;
+}
+
+.toggle-button {
+    background-color: #e0e0e0;
+    color: #666;
+    border: none;
+    padding: 6px 12px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    margin: 2px 0;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: background-color 0.3s ease;
+}
+
+.toggle-button:hover {
+    background-color: #d0d0d0;
+}
+
+.toggle-icon {
+    transition: transform 0.3s ease;
+    display: inline-block;
+}
+
+.toggle-button[aria-expanded="true"] .toggle-icon {
+    transform: rotate(180deg);
+}
+
+.dashboard-item {
+    flex: 1;
+    min-width: 0;
+}
+
+#calendar-wrapper {
+    display: flex;
+    flex-direction: column;
+}
+
+#calendar-wrapper h2,
+#statistics-wrapper h2,
+#oldest-tasks-wrapper h2 {
     margin: 10px 0;
     font-size: 18px;
+    text-align: center;
+}
+
+#calendar-month {
+    padding-top: 10px;
 }
 
 .calendar-grid {
@@ -186,4 +269,131 @@ input, button {
 .legend-levels {
     display: flex;
     gap: 4px;
+}
+
+/* Statistics bar plot styles */
+#stats-bars {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    padding: 15px;
+}
+
+.stat-bar-container {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.stat-bar-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.stat-bar {
+    height: 30px;
+    border-radius: 4px;
+    transition: width 0.3s ease;
+    min-width: 2px;
+}
+
+.green-bar {
+    border: 2px solid green;
+    border-radius: 8px;
+    background-color: #ccffcc;
+}
+
+.yellow-bar {
+    border: 2px solid #d4a017;
+    border-radius: 8px;
+    background-color: #fff4cc;
+}
+
+.red-bar {
+    border: 2px solid red;
+    border-radius: 8px;
+    background-color: #ffcccc;
+}
+
+.stat-count {
+    font-size: 14px;
+    font-weight: bold;
+    min-width: 20px;
+}
+
+/* Oldest tasks styles */
+#oldest-tasks-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 10px;
+}
+
+.oldest-task {
+    padding: 10px;
+    border-radius: 8px;
+    font-size: 14px;
+    text-align: left;
+    background-color: #f9f9f9;
+    border: 2px solid #ddd;
+}
+
+.oldest-task.green {
+    background-color: #ccffcc;
+    border-color: green;
+}
+
+.oldest-task.yellow {
+    background-color: #fff4cc;
+    border-color: #d4a017;
+}
+
+.oldest-task.red {
+    background-color: #ffcccc;
+    border-color: red;
+}
+
+.oldest-task-placeholder {
+    padding: 10px;
+    color: #999;
+    font-style: italic;
+    text-align: center;
+}
+
+.oldest-task-title {
+    font-weight: bold;
+    margin-bottom: 5px;
+    text-align: center;
+    width: 100%;
+}
+
+.oldest-task-info {
+    font-size: 12px;
+    color: #666;
+    text-align: center;
+    width: 100%;
+}
+
+/* Mobile-friendly if necessary */
+
+/* @media (max-width: 300px) {
+    #todo-list {
+        grid-template-columns: 1fr;
+    }
+} */
+
+@media (max-width: 530px) {
+    #stats-bars {
+        padding: 0px;
+    }
+}
+@media (max-width: 505px) {
+    #calendar-month {
+        padding-top: 0px;
+    }
+}
+
+.no-transition {
+    transition: none !important;
 }
