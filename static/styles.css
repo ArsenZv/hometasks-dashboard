@@ -476,25 +476,78 @@ input, button {
     color: black;
 }
 
-/* Mobile-friendly if necessary */
+/* Edit Page Styles */
 
-/* @media (max-width: 300px) {
-    #todo-list {
-        grid-template-columns: 1fr;
-    }
-} */
-
-@media (max-width: 530px) {
-    #stats-bars {
-        padding: 0px;
-    }
-}
-@media (max-width: 505px) {
-    #calendar-month {
-        padding-top: 0px;
-    }
+.edit-item-box {
+    background-color: #f9f9f9;
+    border: 2px solid #ccc;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
 }
 
-.no-transition {
-    transition: none !important;
+.edit-row {
+    display: flex;
+    gap: 10px;
+    width: 100%;
+}
+
+.edit-string {
+    flex: 2;
+}
+
+.edit-lifespan {
+    flex: 1;
+}
+
+.edit-date {
+    flex: 2;
+}
+
+.delete-button {
+    flex: 1;
+    background-color: #ffcccc; /* Dimmer red */
+    border: 2px solid red;
+    color: black;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.3s;
+}
+
+.delete-button:hover {
+    background-color: #ffb3b3;
+}
+
+/* Reuse input styles from add-item-container */
+.edit-item-box input {
+    box-sizing: border-box;
+    border: 2px solid #ccc;
+    border-radius: 8px;
+    background-color: #fff;
+    padding: 10px;
+    font-size: 16px;
+    margin: 0; /* Reset margin */
+}
+
+#save-button {
+    width: 100%;
+    padding: 15px;
+    margin-top: 20px;
+    background-color: #f9f9f9; /* Dimmer blue default */
+    border: 2px solid #ccc;
+    border-radius: 8px;
+    color: black;
+    font-size: 18px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+#save-button.has-changes {
+    background-color: #ccffcc; /* Dimmer green */
+    border: 2px solid green;
 }

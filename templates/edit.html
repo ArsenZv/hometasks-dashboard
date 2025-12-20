@@ -13,11 +13,15 @@
         <a href="/" id="dashboard-link" style="margin-left: 10px;">Dashboard</a>
         <ul id="edit-list">
             {% for item in items %}
-                <li>
-                    <input type="text" value="{{ item.string }}" class="edit-string" data-index="{{ loop.index0 }}">
-                    <input type="number" value="{{ item.lifespan }}" class="edit-lifespan" data-index="{{ loop.index0 }}" step="0.1">
-                    <input type="text" value="{{ item.last_refreshed }}" class="edit-date" data-index="{{ loop.index0 }}">
-                    <button class="delete-button" data-index="{{ loop.index0 }}">Delete</button>
+                <li class="edit-item-box">
+                    <div class="edit-row">
+                        <input type="text" value="{{ item.string }}" class="edit-string" data-index="{{ loop.index0 }}" placeholder="Task Name" data-original="{{ item.string }}">
+                        <input type="number" value="{{ item.lifespan }}" class="edit-lifespan" data-index="{{ loop.index0 }}" step="0.1" placeholder="Days" data-original="{{ item.lifespan }}">
+                    </div>
+                    <div class="edit-row">
+                        <input type="text" value="{{ item.last_refreshed }}" class="edit-date" data-index="{{ loop.index0 }}" placeholder="Last Refreshed" data-original="{{ item.last_refreshed }}">
+                        <button class="delete-button" data-index="{{ loop.index0 }}">Delete</button>
+                    </div>
                 </li>
             {% endfor %}
         </ul>
