@@ -133,10 +133,14 @@ input, button {
 }
 
 #edit-list {
-    max-height: 300px; /* Set a static height */
-    overflow-y: auto; /* Enable vertical scrolling */
-    border: 1px solid #ccc; /* Optional: Add a border for better visibility */
+    list-style: none;
+    padding: 0;
+    /* max-height: 300px; */ /* Removed static height to fit content */
+    /* overflow-y: auto; */ /* Removed scrolling */
     padding: 10px; /* Optional: Add padding for better spacing */
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
 }
 
 #dashboard-row {
@@ -504,18 +508,7 @@ input, button {
 }
 
 .edit-date {
-    flex: 2;
-}
-
-.delete-button {
-    flex: 1;
-    background-color: #ffcccc; /* Dimmer red */
-    border: 2px solid red;
-    color: black;
-    border-radius: 8px;
-    cursor: pointer;
-    font-weight: bold;
-    transition: background-color 0.3s;
+    flex: 3;
 }
 
 .delete-button:hover {
@@ -523,7 +516,8 @@ input, button {
 }
 
 /* Reuse input styles from add-item-container */
-.edit-item-box input {
+.edit-item-box input,
+.delete-button {
     box-sizing: border-box;
     border: 2px solid #ccc;
     border-radius: 8px;
@@ -531,6 +525,17 @@ input, button {
     padding: 10px;
     font-size: 16px;
     margin: 0; /* Reset margin */
+    height: 44px; /* Ensure consistent height */
+    width: 100%; /* Ensure they fill the flex container */
+}
+
+.delete-button {
+    background-color: #ffcccc; /* Dimmer red */
+    border: 2px solid red;
+    color: black;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.3s;
 }
 
 #save-button {
@@ -550,4 +555,11 @@ input, button {
 #save-button.has-changes {
     background-color: #ccffcc; /* Dimmer green */
     border: 2px solid green;
+}
+
+/* Media Queries */
+@media (max-width: 600px) {
+    #todo-list, #edit-list {
+        grid-template-columns: 1fr;
+    }
 }
