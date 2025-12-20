@@ -375,6 +375,72 @@ input, button {
     width: 100%;
 }
 
+/* New controls row styles */
+#controls-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+    padding: 0 10px;
+}
+
+#controls-row p {
+    margin: 0;
+}
+
+.toggle-button-round {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    border: none;
+    background-color: #e0e0e0;
+    color: #333;
+    font-size: 20px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.3s;
+    padding: 0;
+    margin: 0;
+}
+
+.toggle-button-round:hover {
+    background-color: #d0d0d0;
+}
+
+/* Expandable add item section styles */
+#add-item-row {
+    overflow: hidden;
+    max-height: 200px; /* Adjust based on content height */
+    opacity: 1;
+    transition: max-height 0.3s ease-out, opacity 0.3s ease-out, margin 0.3s ease-out;
+    margin-bottom: 20px;
+}
+
+#add-item-row.hidden {
+    max-height: 0;
+    opacity: 0;
+    margin-bottom: 0;
+}
+
+.add-item-container {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 10px;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    border: 1px solid #eee;
+}
+
+.add-item-container input,
+.add-item-container button {
+    margin-top: 0; /* Reset default margin */
+    width: 100%;
+    box-sizing: border-box;
+}
+
 /* Mobile-friendly if necessary */
 
 /* @media (max-width: 300px) {

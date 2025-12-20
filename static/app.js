@@ -245,3 +245,31 @@ if (dashboardToggle && dashboardRow) {
         setDashboardState(isHidden);
     });
 }
+
+// Add item toggle functionality
+const addToggle = document.getElementById('add-toggle');
+const addItemRow = document.getElementById('add-item-row');
+
+if (addToggle && addItemRow) {
+    // Function to update UI based on state
+    const setAddItemState = (show) => {
+        if (show) {
+            addItemRow.classList.remove('hidden');
+            addToggle.textContent = '-';
+            localStorage.setItem('addItemOpen', 'true');
+        } else {
+            addItemRow.classList.add('hidden');
+            addToggle.textContent = '+';
+            localStorage.setItem('addItemOpen', 'false');
+        }
+    };
+
+    // Initialize state from localStorage
+    const isAddItemOpen = localStorage.getItem('addItemOpen') === 'true';
+    setAddItemState(isAddItemOpen);
+
+    addToggle.addEventListener('click', () => {
+        const isHidden = addItemRow.classList.contains('hidden');
+        setAddItemState(isHidden);
+    });
+}
