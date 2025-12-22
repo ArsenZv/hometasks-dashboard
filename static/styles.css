@@ -586,6 +586,54 @@ input, button {
     #todo-list, #edit-list {
         grid-template-columns: 1fr;
     }
+
+    /* 1. Smaller text on cards */
+    .item-text {
+        font-size: 22px;
+    }
+
+    /* 2. Statistics adjustments */
+    #dashboard-row {
+        flex-direction: row;
+        overflow-x: auto;
+        scroll-snap-type: x mandatory;
+        gap: 15px;
+        padding-bottom: 10px;
+    }
+
+    .dashboard-item {
+        min-width: 80vw;
+        scroll-snap-align: center;
+    }
+
+    /* Make calendar slightly more compact */
+    .calendar-grid {
+        grid-template-columns: repeat(7, 14px);
+        grid-auto-rows: 14px;
+        column-gap: 3px;
+        row-gap: 3px;
+    }
+
+    .day-cell, .legend-square {
+        width: 14px;
+        height: 14px;
+    }
+
+    /* Less chunky oldest tasks */
+    .oldest-task {
+        padding: 8px;
+        font-size: 13px;
+    }
+
+    /* 3. Responsive Add Row */
+    .add-item-container {
+        flex-direction: column;
+    }
+
+    #new-item, #new-lifespan, #add-button {
+        width: 100%;
+        flex: none;
+    }
 }
 
 .no-transition {
