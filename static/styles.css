@@ -15,7 +15,7 @@ body {
     padding: 20px;
     border-radius: 8px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    width: min(90vw, 700px);
+    width: min(90vw, 900px);
 }
 
 #app h1 {
@@ -29,8 +29,8 @@ body {
 #todo-list {
     list-style: none;
     padding: 0;
-    max-height: 300px; /* Set a static height */
-    overflow-y: auto; /* Enable vertical scrolling */
+    /* max-height: 300px; */ /* Removed to allow full expansion */
+    /* overflow-y: auto; */ /* Removed scrolling */
     /* border: 1px solid #ccc;  */
     padding: 10px; /* Optional: Add padding for better spacing */
     display: grid;
@@ -508,7 +508,11 @@ input, button {
 }
 
 .edit-date {
-    flex: 3;
+    flex: 3.5;
+}
+
+.delete-button {
+    flex: 0.5;
 }
 
 .delete-button:hover {
@@ -555,6 +559,25 @@ input, button {
 #save-button.has-changes {
     background-color: #ccffcc; /* Dimmer green */
     border: 2px solid green;
+}
+
+.dashboard-button {
+    display: inline-block;
+    padding: 10px 20px;
+    background-color: #cce5ff; /* Dimmer blue */
+    border: 2px solid #007bff;
+    border-radius: 8px;
+    color: black;
+    font-size: 16px;
+    font-weight: bold;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    margin: 10px 0;
+}
+
+.dashboard-button:hover {
+    background-color: #b3d9ff;
 }
 
 /* Media Queries */
