@@ -50,4 +50,29 @@ document.getElementById('save-button').addEventListener('click', () => {
 document.addEventListener('DOMContentLoaded', () => {
     const appVersion = APP_VERSION || 'Unknown';
     document.getElementById('app-version').textContent = `Current Version: ${appVersion}`;
+
+    const saveButton = document.getElementById('save-button');
+    const inputs = document.querySelectorAll('#edit-list input');
+
+    function checkForChanges() {
+        let hasChanges = false;
+        inputs.forEach(input => {
+            const originalValue = input.getAttribute('data-original');
+            // For lifespan (number), we might need to be careful with types, but string comparison usually works for inputs
+            // However, let's be safe.
+            if (input.value !== originalValue) {
+                hasChanges = true;
+            }
+        });
+
+        if (hasChanges) {
+            saveButton.classList.add('has-changes');
+        } else {
+            saveButton.classList.remove('has-changes');
+        }
+    }
+
+    inputs.forEach(input => {
+        input.addEventListener('input', checkForChanges);
+    });
 });
