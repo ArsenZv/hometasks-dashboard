@@ -60,26 +60,52 @@
                 </div>
             </div>
         </div>
+        <div id="controls-row">
+            <a href="/edit" id="edit-link" class="toggle-button-round" title="Edit Items">
+                <span class="gear-icon">⚙️</span>
+            </a>
+            <p id="today-date"></p>
+            <button id="add-toggle" class="toggle-button-round" title="Add New Item">+</button>
+        </div>
+        
+        <div id="add-item-row" class="hidden no-transition">
+            <div class="add-item-container">
+                <input type="text" id="new-item" placeholder="Task">
+                <input type="number" id="new-lifespan" placeholder="Lifespan (in days)" step="0.1">
+                <button id="add-button">Add</button>
+            </div>
+        </div>
+
         <script>
             (function() {
+                // Dashboard state restoration
                 const dashboardRow = document.getElementById('dashboard-row');
                 const dashboardToggle = document.getElementById('dashboard-toggle');
-                const savedState = localStorage.getItem('dashboardOpen');
+                const savedDashboardState = localStorage.getItem('dashboardOpen');
                 
-                if (savedState === 'true') {
+                if (savedDashboardState === 'true') {
                     dashboardRow.classList.remove('hidden');
                     dashboardToggle.setAttribute('aria-expanded', 'true');
                     dashboardToggle.innerHTML = '<span class="toggle-icon">▼</span> Hide Statistics';
                 }
                 
-                // Remove no-transition class after initial render to enable animations for future interactions
-                // Using setTimeout to ensure it runs after the paint
+                // Add item row state restoration
+                const addItemRow = document.getElementById('add-item-row');
+                const addToggle = document.getElementById('add-toggle');
+                const savedAddState = localStorage.getItem('addItemOpen');
+
+                if (savedAddState === 'true') {
+                    addItemRow.classList.remove('hidden');
+                    addToggle.textContent = '-';
+                }
+
+                // Remove no-transition class after initial render
                 setTimeout(() => {
                     dashboardRow.classList.remove('no-transition');
+                    addItemRow.classList.remove('no-transition');
                 }, 100);
             })();
         </script>
-        <p id="today-date"></p>
         <ul id="todo-list">
             {% for item in items %}
                 {% set item_date = item.last_refreshed | to_datetime %}
@@ -91,12 +117,6 @@
                 </li>
             {% endfor %}
         </ul>
-        <a href="/edit" id="edit-link" title="Edit Items">
-            <span class="gear-icon">⚙️</span>
-        </a>
-        <input type="text" id="new-item" placeholder="Task">
-        <input type="number" id="new-lifespan" placeholder="Lifespan (in days)" step="0.1">
-        <button id="add-button">Add</button>
     </div>
     <script>
         const CALENDAR_DATA = {{ calendar_data | tojson }};
