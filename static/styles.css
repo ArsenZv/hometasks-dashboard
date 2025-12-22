@@ -587,3 +587,7 @@ input, button {
         grid-template-columns: 1fr;
     }
 }
+
+.no-transition {
+    transition: none !important;
+}
