@@ -183,8 +183,11 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 document.getElementById('add-button').addEventListener('click', () => {
-    const newString = document.getElementById('new-item').value;
-    const newLifespan = parseFloat(document.getElementById('new-lifespan').value);
+    const newItemInput = document.getElementById('new-item');
+    const newLifespanInput = document.getElementById('new-lifespan');
+    const newString = newItemInput.value;
+    const newLifespan = parseFloat(newLifespanInput.value);
+    
     if (newString && !isNaN(newLifespan)) {
         fetch('/add', {
             method: 'POST',
@@ -196,11 +199,32 @@ document.getElementById('add-button').addEventListener('click', () => {
         .then(response => response.json())
         .then(data => {
             if (data.success) {
+                newItemInput.value = '';
+                newLifespanInput.value = '';
+                updateAddButtonState(); // Reset button color
                 location.reload();
             }
         });
     }
 });
+
+// Add button state logic
+const newItemInput = document.getElementById('new-item');
+const newLifespanInput = document.getElementById('new-lifespan');
+const addButton = document.getElementById('add-button');
+
+function updateAddButtonState() {
+    if (newItemInput.value.trim() !== '' && newLifespanInput.value.trim() !== '') {
+        addButton.classList.add('ready');
+    } else {
+        addButton.classList.remove('ready');
+    }
+}
+
+if (newItemInput && newLifespanInput && addButton) {
+    newItemInput.addEventListener('input', updateAddButtonState);
+    newLifespanInput.addEventListener('input', updateAddButtonState);
+}
 
 document.querySelectorAll('#todo-list li').forEach(item => {
     item.addEventListener('click', (e) => {
@@ -243,5 +267,33 @@ if (dashboardToggle && dashboardRow) {
     dashboardToggle.addEventListener('click', () => {
         const isHidden = dashboardRow.classList.contains('hidden');
         setDashboardState(isHidden);
+    });
+}
+
+// Add item toggle functionality
+const addToggle = document.getElementById('add-toggle');
+const addItemRow = document.getElementById('add-item-row');
+
+if (addToggle && addItemRow) {
+    // Function to update UI based on state
+    const setAddItemState = (show) => {
+        if (show) {
+            addItemRow.classList.remove('hidden');
+            addToggle.textContent = '-';
+            localStorage.setItem('addItemOpen', 'true');
+        } else {
+            addItemRow.classList.add('hidden');
+            addToggle.textContent = '+';
+            localStorage.setItem('addItemOpen', 'false');
+        }
+    };
+
+    // Initialize state from localStorage
+    const isAddItemOpen = localStorage.getItem('addItemOpen') === 'true';
+    setAddItemState(isAddItemOpen);
+
+    addToggle.addEventListener('click', () => {
+        const isHidden = addItemRow.classList.contains('hidden');
+        setAddItemState(isHidden);
     });
 }
