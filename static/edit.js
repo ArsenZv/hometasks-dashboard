@@ -40,7 +40,9 @@ document.getElementById('save-button').addEventListener('click', () => {
             message.style.display = 'block';
             setTimeout(() => {
                 message.style.display = 'none';
+                window.location.href = "/";
             }, 3000);
+            
         } else {
             alert('Failed to save changes.');
         }
