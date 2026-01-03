@@ -89,40 +89,6 @@
         </ul>
     </div>
     <script>
-        (function() {
-            // Dashboard state restoration
-            const dashboardRow = document.getElementById('dashboard-row');
-            const dashboardToggle = document.getElementById('dashboard-toggle');
-            const savedDashboardState = localStorage.getItem('dashboardOpen');
-            
-            if (savedDashboardState === 'true') {
-                dashboardRow.classList.remove('hidden');
-                dashboardToggle.setAttribute('aria-expanded', 'true');
-                dashboardToggle.innerHTML = '<span class="toggle-icon">▼</span> Hide Statistics';
-            }
-            
-            // Add item row state restoration
-            const addItemRow = document.getElementById('add-item-row');
-            const addToggle = document.getElementById('add-toggle');
-            const savedAddState = localStorage.getItem('addItemOpen');
-
-            if (savedAddState === 'true') {
-                addItemRow.classList.remove('hidden');
-                addToggle.textContent = '-';
-            }
-            
-            // Remove no-transition class after initial render
-            setTimeout(() => {
-                dashboardRow.classList.remove('no-transition');
-                addItemRow.classList.remove('no-transition');
-            }, 100);
-        })();
-        
-        document.getElementById('refresh-button').addEventListener('click', function() {
-            window.location.reload();
-        });
-    </script>
-    <script>
         const CALENDAR_DATA = {{ calendar_data | tojson }};
         const TOTAL_TASKS = {{ total_tasks }};
     </script>
