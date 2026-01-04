@@ -77,4 +77,17 @@ document.addEventListener('DOMContentLoaded', () => {
     inputs.forEach(input => {
         input.addEventListener('input', checkForChanges);
     });
+
+    // Initialize Flatpickr on all date fields
+    document.querySelectorAll('.edit-date').forEach(input => {
+        const existingTime = input.value.split('T')[1]; // Extract the existing time
+        flatpickr(input, {
+            enableTime: false, // Disable time picker
+            dateFormat: "Y-m-dTH:i:s", // Keep the time part in the format
+            onChange: function(selectedDates, dateStr, instance) {
+                const currentDate = input.value.split('T')[0]; // Strip off the part after 'T'
+                input.value = `${currentDate}T${existingTime}`; // Replace with the existing time
+            }
+        });
+    });
 });
