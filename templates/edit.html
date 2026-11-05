@@ -14,7 +14,7 @@
         <a href="/" id="dashboard-button" class="dashboard-button">◀ Dashboard</a>
         <ul id="edit-list">
             {% for item in items %}
-                <li class="edit-item-box">
+                <li class="edit-item-box" data-id="{{ item.id }}">
                     <div class="edit-row">
                         <input type="text" value="{{ item.string }}" class="edit-string" data-index="{{ loop.index0 }}" placeholder="Task Name" data-original="{{ item.string }}">
                         <input type="number" value="{{ item.lifespan }}" class="edit-lifespan" data-index="{{ loop.index0 }}" step="0.1" placeholder="Days" data-original="{{ item.lifespan }}">

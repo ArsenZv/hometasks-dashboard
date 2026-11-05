@@ -22,7 +22,7 @@ document.getElementById('save-button').addEventListener('click', () => {
         const string = li.querySelector('.edit-string').value;
         const lifespan = parseFloat(li.querySelector('.edit-lifespan').value);
         const dateAdded = li.querySelector('.edit-date').value;
-        updatedItems.push({ string, lifespan, last_refreshed: dateAdded });
+        updatedItems.push({ id: li.dataset.id, string, lifespan, last_refreshed: dateAdded });
     });
 
     // Send updated data to the server
