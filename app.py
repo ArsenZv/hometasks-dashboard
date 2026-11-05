@@ -1,6 +1,5 @@
 from flask import Flask, render_template, request, jsonify
 import json
-import re
 from datetime import datetime, timedelta
 from subprocess import check_output
 import os
@@ -192,7 +191,18 @@ def index():
         total_tasks=total_tasks
     )
 
-ICON_PATTERN = re.compile(r'^[a-z0-9_]+$')
+ICON_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static', 'icons')
+# icons used by the interface itself: not offered as task icons
+UI_ICONS = {'checkbox', 'close', 'done', 'edit', 'hated', 'liked', 'plus', 'trash'}
+
+def available_icons():
+    """Task icons = every PNG in static/icons except the UI ones. Drop a new
+    PNG there (run tools/normalize_icons.py) and it shows up in the picker."""
+    names = {f[:-4] for f in os.listdir(ICON_DIR) if f.endswith('.png')}
+    return sorted(names - UI_ICONS)
+
+def _valid_icon(icon):
+    return icon is None or icon in available_icons()
 
 def _valid_lifespan(value):
     return isinstance(value, (int, float)) and not isinstance(value, bool) and value > 0
@@ -225,7 +235,7 @@ def add_item():
         'last_refreshed': now.strftime('%Y-%m-%dT%H:%M:%S'),
         'icon': payload.get('icon')
     }
-    if name and _valid_lifespan(lifespan):
+    if name and _valid_lifespan(lifespan) and _valid_icon(new_item['icon']):
         data.append(new_item)
         save_data(data)
         history = sync_history_with_items(load_history(), data)
@@ -259,6 +269,10 @@ def api_tasks():
             'strip': metrics[item['id']]['strip'],
         })
     return jsonify(tasks)
+
+@app.route('/api/icons')
+def api_icons():
+    return jsonify(available_icons())
 
 @app.route('/api/stats')
 def api_stats():
@@ -296,7 +310,7 @@ def api_update_task(task_id):
         item['lifespan'] = payload['lifespan']
     if 'icon' in payload:
         icon = payload['icon']
-        if icon is not None and not (isinstance(icon, str) and ICON_PATTERN.match(icon)):
+        if not _valid_icon(icon):
             return jsonify({'success': False, 'error': 'invalid icon'}), 400
         item['icon'] = icon
     edited_last_done = None

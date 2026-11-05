@@ -14,7 +14,7 @@
 <body>
     <header id="navbar">
         <a href="/" class="brand">
-            <img src="{{ url_for('static', filename='img/logo.png') }}" alt="" class="brand-logo">
+            <img src="{{ url_for('static', filename='img/baking_potatoes.png') }}" alt="" class="brand-logo">
             <span class="brand-title">Potato Bakery Inc.</span>
         </a>
         <nav class="nav-buttons">
@@ -27,7 +27,6 @@
         {% block content %}{% endblock %}
     </main>
 
-    <img src="{{ url_for('static', filename='img/baking_potatoes.png') }}" alt="" class="corner-potatoes" aria-hidden="true">
 
     {% block scripts %}{% endblock %}
 </body>

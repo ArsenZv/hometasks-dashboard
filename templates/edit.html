@@ -7,12 +7,16 @@
 </div>
 
 <form id="add-form" class="panel add-item-container" autocomplete="off">
+    <button type="button" id="add-icon-button" class="icon-pick-button" title="Choose an icon" aria-expanded="false">
+        <img id="add-icon" alt="Task icon" class="pick-icon">
+    </button>
     <input type="text" id="new-item" placeholder="New task name" maxlength="80" aria-label="New task name">
     <input type="number" id="new-lifespan" placeholder="Every … days" step="0.5" min="0.5" aria-label="Frequency in days">
     <button type="submit" id="add-button" disabled>
         <img src="{{ url_for('static', filename='icons/plus.png') }}" alt="" class="btn-icon"> Add
     </button>
 </form>
+<div id="add-icon-picker" class="panel icon-picker hidden" role="listbox" aria-label="Task icon"></div>
 
 <div class="panel table-panel">
     <div class="task-table" role="table">
@@ -29,12 +33,15 @@
 <div id="modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="modal-title">
     <div class="modal-box panel">
         <div class="modal-head">
-            <img id="modal-icon" class="modal-icon" alt="">
+            <button type="button" id="modal-icon-button" class="icon-pick-button" title="Change icon" aria-expanded="false">
+                <img id="modal-icon" class="pick-icon" alt="Task icon">
+            </button>
             <h2 id="modal-title">Edit task</h2>
             <button type="button" id="modal-close" class="icon-button" title="Close">
                 <img src="{{ url_for('static', filename='icons/close.png') }}" alt="Close" class="btn-icon">
             </button>
         </div>
+        <div id="modal-icon-picker" class="icon-picker hidden" role="listbox" aria-label="Task icon"></div>
         <label class="field">Name
             <input type="text" id="edit-name" maxlength="80">
         </label>

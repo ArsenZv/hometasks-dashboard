@@ -4,6 +4,9 @@ const CONFIRM_TIMEOUT_MS = 3000;
 
 let tasks = [];
 let editing = null;   // task currently open in the modal
+let iconNames = [];   // task icons offered by the picker
+let newIcon = null;   // icon chosen in the add form
+let modalIcon = null; // icon chosen in the modal
 
 const $ = id => document.getElementById(id);
 
@@ -79,6 +82,55 @@ async function loadTasks() {
     renderRows();
 }
 
+
+/* ---------- icon picker (shared by the add form and the modal) ---------- */
+function humanise(name) { return name.replace(/_/g, ' '); }
+
+function renderIconPicker(container, selected, onPick) {
+    container.innerHTML = '';
+    iconNames.forEach(name => {
+        const btn = el('button', 'icon-option' + (name === selected ? ' selected' : ''));
+        btn.type = 'button';
+        btn.title = humanise(name);
+        btn.setAttribute('role', 'option');
+        btn.setAttribute('aria-selected', name === selected);
+        btn.appendChild(iconImg(name, 'pick-icon'));
+        btn.addEventListener('click', () => onPick(name));
+        container.appendChild(btn);
+    });
+}
+
+function togglePicker(button, container, selected, onPick) {
+    const open = container.classList.contains('hidden');
+    container.classList.toggle('hidden', !open);
+    button.setAttribute('aria-expanded', open);
+    if (open) renderIconPicker(container, selected(), onPick);
+}
+
+function closePicker(button, container) {
+    container.classList.add('hidden');
+    button.setAttribute('aria-expanded', 'false');
+}
+
+function setNewIcon(name) {
+    newIcon = name;
+    $('add-icon').src = iconSrc(name);
+    closePicker($('add-icon-button'), $('add-icon-picker'));
+}
+
+$('add-icon-button').addEventListener('click', () =>
+    togglePicker($('add-icon-button'), $('add-icon-picker'), () => newIcon, setNewIcon));
+
+function setModalIcon(name) {
+    modalIcon = name;
+    $('modal-icon').src = iconSrc(name);
+    closePicker($('modal-icon-button'), $('modal-icon-picker'));
+    syncSaveButton();
+}
+
+$('modal-icon-button').addEventListener('click', () =>
+    togglePicker($('modal-icon-button'), $('modal-icon-picker'), () => modalIcon, setModalIcon));
+
 /* ---------- add form ---------- */
 function validNew() {
     return $('new-item').value.trim() !== '' && parseFloat($('new-lifespan').value) > 0;
@@ -98,13 +150,14 @@ $('add-form').addEventListener('submit', async e => {
     const res = await fetch('/add', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ string: $('new-item').value.trim(), lifespan: parseFloat($('new-lifespan').value) }),
+        body: JSON.stringify({ string: $('new-item').value.trim(), lifespan: parseFloat($('new-lifespan').value), icon: newIcon }),
     });
     if (res.ok) {
         $('new-item').value = '';
         $('new-lifespan').value = '';
+        setNewIcon(null);
         await loadTasks();
-    } else {
+        } else {
         alert('Failed to add the task.');
     }
     syncAddButton();
@@ -129,7 +182,8 @@ function isDirty() {
     if (!editing) return false;
     return $('edit-name').value.trim() !== editing.string
         || parseFloat($('edit-lifespan').value) !== editing.lifespan
-        || $('edit-date').value !== datePart(editing.last_refreshed);
+        || $('edit-date').value !== datePart(editing.last_refreshed)
+        || modalIcon !== (editing.icon || null);
 }
 
 function syncSaveButton() {
@@ -139,7 +193,9 @@ function syncSaveButton() {
 
 function openModal(task) {
     editing = task;
-    $('modal-icon').src = iconSrc(task.icon);
+    modalIcon = task.icon || null;
+    $('modal-icon').src = iconSrc(modalIcon);
+    closePicker($('modal-icon-button'), $('modal-icon-picker'));
     $('edit-name').value = task.string;
     $('edit-lifespan').value = task.lifespan;
     $('edit-date').value = datePart(task.last_refreshed);
@@ -165,6 +221,7 @@ $('modal-save').addEventListener('click', async () => {
     if ($('edit-name').value.trim() !== editing.string) payload.string = $('edit-name').value.trim();
     if (parseFloat($('edit-lifespan').value) !== editing.lifespan) payload.lifespan = parseFloat($('edit-lifespan').value);
     if ($('edit-date').value !== datePart(editing.last_refreshed)) payload.last_refreshed = $('edit-date').value;
+    if (modalIcon !== (editing.icon || null)) payload.icon = modalIcon;
 
     $('modal-save').disabled = true;
     const res = await fetch(`/api/tasks/${editing.id}`, {
@@ -175,7 +232,7 @@ $('modal-save').addEventListener('click', async () => {
     if (res.ok) {
         closeModal();
         await loadTasks();
-    } else {
+        } else {
         const body = await res.json().catch(() => ({}));
         showError(body.error || 'Could not save, try again.');
         syncSaveButton();
@@ -195,7 +252,7 @@ $('modal-delete').addEventListener('click', async () => {
     if (res.ok) {
         closeModal();
         await loadTasks();
-    } else {
+        } else {
         showError('Could not delete, try again.');
     }
 });
@@ -208,4 +265,9 @@ document.addEventListener('keydown', e => {
     if (e.key === 'Enter' && editing && e.target.tagName === 'INPUT') $('modal-save').click();
 });
 
-loadTasks();
+async function init() {
+    iconNames = await fetch('/api/icons').then(r => r.json());
+    setNewIcon(null);
+    await loadTasks();
+}
+init();
