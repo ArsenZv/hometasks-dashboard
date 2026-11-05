@@ -207,14 +207,41 @@ button:disabled { background: var(--btn-disabled); color: var(--muted); cursor: 
 .done-button.armed { background: var(--btn-done); animation: blink 0.8s steps(2) infinite; }
 @keyframes blink { 50% { background: var(--btn-primary); } }
 
-/* statistics (interim) */
-#stats-bars { display: flex; flex-direction: column; gap: 8px; }
-.stat-bar-wrapper { display: flex; align-items: center; gap: 10px; }
-.stat-bar { height: 28px; min-width: 4px; border: var(--border); }
-.stat-count { min-width: 20px; }
+/* statistics */
+.range-buttons { display: flex; gap: 10px; }
+.range-button { font-family: var(--font-display); font-size: 11px; padding: 10px 14px; }
+.range-button.active { background: var(--btn-primary); }
+
+.stats-row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
+.stats-row .panel { margin: 0; }
+.small { font-size: 16px; }
+.title-icon { width: 24px; height: 24px; vertical-align: middle; margin-right: 6px; }
+
+.progress-bar { display: flex; height: 40px; background: var(--btn-disabled); border: var(--border); }
+.progress-seg { height: 100%; border-right: 3px solid var(--ink); }
+.progress-seg:last-child { border-right: 0; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 16px; margin-top: 10px; font-size: 16px; }
+.legend-item { display: inline-flex; align-items: center; gap: 6px; }
+.legend-swatch { width: 14px; height: 14px; border: 2px solid var(--ink); }
+.big-number { margin: 10px 0 0; font-size: 20px; }
+
+.donut-svg { display: block; width: 100%; max-width: 200px; margin: 0 auto; }
+.donut-total { font-family: var(--font-display); font-size: 22px; fill: var(--ink); }
+#donut .legend { justify-content: center; }
+
 #oldest-tasks-list { display: flex; flex-direction: column; gap: 10px; }
-.oldest-task { padding: 10px; text-align: center; border: var(--border); }
+.oldest-task { display: flex; align-items: center; gap: 10px; padding: 10px; border: var(--border); }
+.oldest-text { min-width: 0; }
+.oldest-task-title { overflow-wrap: anywhere; }
 .oldest-task-info { font-size: 16px; color: var(--muted); }
+
+.highlight { display: flex; align-items: center; gap: 12px; padding: 10px; background: var(--cream); border: var(--border); }
+.highlight-icon { width: 64px; height: 64px; flex: none; }
+.highlight-name { font-size: 22px; overflow-wrap: anywhere; }
+
+.hist-svg { display: block; width: 100%; max-width: 440px; }
+.axis-text { font-family: var(--font-body); font-size: 12px; fill: var(--ink); }
+.axis-caption { margin: 2px 0 0; font-size: 14px; color: var(--muted); }
 
 /* mobile tabs (hidden on desktop) */
 #mobile-tabs { display: none; }
@@ -254,6 +281,7 @@ button:disabled { background: var(--btn-disabled); color: var(--muted); cursor: 
     .tab-icon { width: 22px; height: 22px; }
 
     #home { grid-template-columns: minmax(0, 1fr); }
+    .stats-row { grid-template-columns: minmax(0, 1fr); }
     #tasks-column { position: static; height: auto; }
     #task-list { overflow: visible; }
     #home[data-active-tab="tasks"] #stats-column,

@@ -164,9 +164,9 @@ def compute_stats(tasks, events, range_key='30', now=None):
 
     oldest = sorted(tasks, key=lambda t: current[t['id']]['age'], reverse=True)[:3]
 
-    # suggestions: yellow tasks closest to turning red, and the most overdue red one
+    # suggestions: the yellow task closest to turning red, and the most overdue red one
     yellow = sorted((t for t in tasks if current[t['id']]['status'] == 'yellow'),
-                    key=lambda t: t['lifespan'] - current[t['id']]['age'])[:3]
+                    key=lambda t: t['lifespan'] - current[t['id']]['age'])[:1]
     red = sorted((t for t in tasks if current[t['id']]['status'] == 'red'),
                  key=lambda t: current[t['id']]['age'] - t['lifespan'], reverse=True)[:1]
 
