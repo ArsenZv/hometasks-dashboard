@@ -1,118 +1,211 @@
-document.querySelectorAll('.delete-button').forEach(button => {
-    button.addEventListener('click', () => {
-        const itemIndex = button.getAttribute('data-index');
-        fetch(`/delete/${itemIndex}`, {
-            method: 'POST'
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                location.reload();
-            } else {
-                alert('Failed to delete the item.');
-            }
-        });
-    });
-});
+const FALLBACK_ICON = 'other';
+const STATUS_LABEL = { green: 'on track', yellow: 'ok', red: 'overdue' };
+const CONFIRM_TIMEOUT_MS = 3000;
 
-document.getElementById('save-button').addEventListener('click', () => {
-    // Collect updated data from inputs
-    const updatedItems = [];
-    document.querySelectorAll('#edit-list li').forEach((li, index) => {
-        const string = li.querySelector('.edit-string').value;
-        const lifespan = parseFloat(li.querySelector('.edit-lifespan').value);
-        const dateAdded = li.querySelector('.edit-date').value;
-        updatedItems.push({ id: li.dataset.id, string, lifespan, last_refreshed: dateAdded });
-    });
+let tasks = [];
+let editing = null;   // task currently open in the modal
 
-    // Send updated data to the server
-    fetch('/save', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ items: updatedItems })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            const message = document.getElementById('confirmation-message');
-            message.style.display = 'block';
-            setTimeout(() => {
-                message.style.display = 'none';
-                window.location.href = "/";
-            }, 3000);
-            
-        } else {
-            alert('Failed to save changes.');
-        }
-    });
-});
+const $ = id => document.getElementById(id);
 
-document.addEventListener('DOMContentLoaded', () => {
-    const appVersion = APP_VERSION || 'Unknown';
-    document.getElementById('app-version').textContent = `Current Version: ${appVersion}`;
+function el(tag, className, text) {
+    const node = document.createElement(tag);
+    if (className) node.className = className;
+    if (text !== undefined) node.textContent = text;
+    return node;
+}
 
-    const saveButton = document.getElementById('save-button');
-    const inputs = document.querySelectorAll('#edit-list input');
+function iconSrc(name) { return `${ICON_BASE}${name || FALLBACK_ICON}.png`; }
 
-    function checkForChanges() {
-        let hasChanges = false;
-        inputs.forEach(input => {
-            const originalValue = input.getAttribute('data-original');
-            // For lifespan (number), we might need to be careful with types, but string comparison usually works for inputs
-            // However, let's be safe.
-            if (input.value !== originalValue) {
-                hasChanges = true;
-            }
-        });
+function iconImg(name, className) {
+    const img = el('img', className);
+    img.alt = '';
+    img.src = iconSrc(name);
+    img.onerror = () => { img.onerror = null; img.src = iconSrc(null); };
+    return img;
+}
 
-        if (hasChanges) {
-            saveButton.classList.add('has-changes');
-        } else {
-            saveButton.classList.remove('has-changes');
-        }
+function timeAgo(ageDays) {
+    if (ageDays < 1 / 24) return 'just now';
+    if (ageDays < 1) return `${Math.floor(ageDays * 24)}h ago`;
+    const days = Math.floor(ageDays);
+    return days === 1 ? 'yesterday' : `${days} days ago`;
+}
+
+function frequencyText(days) {
+    if (days === 1) return 'daily';
+    if (days === 7) return 'weekly';
+    return `every ${days} days`;
+}
+
+const datePart = timestamp => timestamp.slice(0, 10);
+
+/* ---------- table ---------- */
+function renderRows() {
+    const box = $('task-rows');
+    box.innerHTML = '';
+    if (!tasks.length) {
+        box.appendChild(el('p', 'muted empty', 'No tasks yet. Add the first one above.'));
+        return;
     }
+    tasks.forEach(task => {
+        const row = el('button', 'task-row');
+        row.type = 'button';
+        row.setAttribute('role', 'row');
 
-    inputs.forEach(input => {
-        input.addEventListener('input', checkForChanges);
-    });
+        const name = el('span', 'cell-task');
+        name.appendChild(iconImg(task.icon, 'row-icon'));
+        name.appendChild(el('span', 'row-name', task.string));
+        row.appendChild(name);
 
-    // Initialize Flatpickr on all date fields
-    document.querySelectorAll('.edit-date').forEach(input => {
-        const existingTime = input.value.split('T')[1]; // Extract the existing time
-        flatpickr(input, {
-            enableTime: false, // Disable time picker
-            dateFormat: "Y-m-dTH:i:s", // Keep the time part in the format
-            onChange: function(selectedDates, dateStr, instance) {
-                const currentDate = input.value.split('T')[0]; // Strip off the part after 'T'
-                input.value = `${currentDate}T${existingTime}`; // Replace with the existing time
-            }
-        });
+        const status = el('span', 'cell-status');
+        const square = el('span', `status-square ${task.status}`);
+        square.title = STATUS_LABEL[task.status];
+        status.appendChild(square);
+        row.appendChild(status);
+
+        const last = el('span', 'cell-last');
+        last.appendChild(el('span', null, datePart(task.last_refreshed)));
+        last.appendChild(el('span', 'muted small', timeAgo(task.age_days)));
+        row.appendChild(last);
+
+        row.appendChild(el('span', 'cell-frequency', frequencyText(task.lifespan)));
+        row.addEventListener('click', () => openModal(task));
+        box.appendChild(row);
     });
+}
+
+async function loadTasks() {
+    tasks = await fetch('/api/tasks').then(r => r.json());
+    renderRows();
+}
+
+/* ---------- add form ---------- */
+function validNew() {
+    return $('new-item').value.trim() !== '' && parseFloat($('new-lifespan').value) > 0;
+}
+
+function syncAddButton() {
+    $('add-button').disabled = !validNew();
+}
+
+$('new-item').addEventListener('input', syncAddButton);
+$('new-lifespan').addEventListener('input', syncAddButton);
+
+$('add-form').addEventListener('submit', async e => {
+    e.preventDefault();
+    if (!validNew()) return;
+    $('add-button').disabled = true;
+    const res = await fetch('/add', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ string: $('new-item').value.trim(), lifespan: parseFloat($('new-lifespan').value) }),
+    });
+    if (res.ok) {
+        $('new-item').value = '';
+        $('new-lifespan').value = '';
+        await loadTasks();
+    } else {
+        alert('Failed to add the task.');
+    }
+    syncAddButton();
 });
 
-// Add a new task (moved here from the Home page)
-(function () {
-    const nameInput = document.getElementById('new-item');
-    const lifespanInput = document.getElementById('new-lifespan');
-    const addButton = document.getElementById('add-button');
+/* ---------- modal ---------- */
+let deleteTimer = null;
 
-    const updateState = () => addButton.classList.toggle(
-        'ready', nameInput.value.trim() !== '' && lifespanInput.value.trim() !== '');
-    nameInput.addEventListener('input', updateState);
-    lifespanInput.addEventListener('input', updateState);
+function resetDeleteButton() {
+    clearTimeout(deleteTimer);
+    const btn = $('modal-delete');
+    btn.classList.remove('armed');
+    btn.lastChild.textContent = ' Delete';
+}
 
-    addButton.addEventListener('click', () => {
-        const string = nameInput.value.trim();
-        const lifespan = parseFloat(lifespanInput.value);
-        if (!string || isNaN(lifespan) || lifespan <= 0) return;
-        fetch('/add', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ string, lifespan })
-        })
-        .then(r => r.json())
-        .then(data => { if (data.success) location.reload(); else alert('Failed to add the task.'); });
+function showError(message) {
+    $('modal-error').textContent = message || '';
+    $('modal-error').classList.toggle('hidden', !message);
+}
+
+function isDirty() {
+    if (!editing) return false;
+    return $('edit-name').value.trim() !== editing.string
+        || parseFloat($('edit-lifespan').value) !== editing.lifespan
+        || $('edit-date').value !== datePart(editing.last_refreshed);
+}
+
+function syncSaveButton() {
+    const valid = $('edit-name').value.trim() !== '' && parseFloat($('edit-lifespan').value) > 0 && $('edit-date').value !== '';
+    $('modal-save').disabled = !(valid && isDirty());
+}
+
+function openModal(task) {
+    editing = task;
+    $('modal-icon').src = iconSrc(task.icon);
+    $('edit-name').value = task.string;
+    $('edit-lifespan').value = task.lifespan;
+    $('edit-date').value = datePart(task.last_refreshed);
+    $('edit-date').max = datePart(new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString());
+    showError('');
+    resetDeleteButton();
+    syncSaveButton();
+    $('modal').classList.remove('hidden');
+    $('edit-name').focus();
+}
+
+function closeModal() {
+    editing = null;
+    resetDeleteButton();
+    $('modal').classList.add('hidden');
+}
+
+['edit-name', 'edit-lifespan', 'edit-date'].forEach(id => $(id).addEventListener('input', syncSaveButton));
+
+$('modal-save').addEventListener('click', async () => {
+    if (!editing || $('modal-save').disabled) return;
+    const payload = {};
+    if ($('edit-name').value.trim() !== editing.string) payload.string = $('edit-name').value.trim();
+    if (parseFloat($('edit-lifespan').value) !== editing.lifespan) payload.lifespan = parseFloat($('edit-lifespan').value);
+    if ($('edit-date').value !== datePart(editing.last_refreshed)) payload.last_refreshed = $('edit-date').value;
+
+    $('modal-save').disabled = true;
+    const res = await fetch(`/api/tasks/${editing.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
     });
-})();
+    if (res.ok) {
+        closeModal();
+        await loadTasks();
+    } else {
+        const body = await res.json().catch(() => ({}));
+        showError(body.error || 'Could not save, try again.');
+        syncSaveButton();
+    }
+});
+
+$('modal-delete').addEventListener('click', async () => {
+    const btn = $('modal-delete');
+    if (!btn.classList.contains('armed')) {
+        btn.classList.add('armed');
+        btn.lastChild.textContent = ' Sure?';
+        deleteTimer = setTimeout(resetDeleteButton, CONFIRM_TIMEOUT_MS);
+        return;
+    }
+    resetDeleteButton();
+    const res = await fetch(`/api/tasks/${editing.id}`, { method: 'DELETE' });
+    if (res.ok) {
+        closeModal();
+        await loadTasks();
+    } else {
+        showError('Could not delete, try again.');
+    }
+});
+
+$('modal-cancel').addEventListener('click', closeModal);
+$('modal-close').addEventListener('click', closeModal);
+$('modal').addEventListener('click', e => { if (e.target === $('modal')) closeModal(); });
+document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && editing) closeModal();
+    if (e.key === 'Enter' && editing && e.target.tagName === 'INPUT') $('modal-save').click();
+});
+
+loadTasks();

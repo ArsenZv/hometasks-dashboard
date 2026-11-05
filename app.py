@@ -1,5 +1,6 @@
 from flask import Flask, render_template, request, jsonify
 import json
+import re
 from datetime import datetime, timedelta
 from subprocess import check_output
 import os
@@ -191,17 +192,40 @@ def index():
         total_tasks=total_tasks
     )
 
+ICON_PATTERN = re.compile(r'^[a-z0-9_]+$')
+
+def _valid_lifespan(value):
+    return isinstance(value, (int, float)) and not isinstance(value, bool) and value > 0
+
+def _parse_last_done(value, current):
+    """Accept 'YYYY-MM-DD' (keeps the old time of day) or a full timestamp.
+    Returns the normalised string, or None if invalid / in the future."""
+    try:
+        if len(value) == 10:
+            keep_time = datetime.strptime(current, TIME_FORMAT).time()
+            parsed = datetime.combine(datetime.strptime(value, '%Y-%m-%d').date(), keep_time)
+        else:
+            parsed = datetime.strptime(value, TIME_FORMAT)
+    except (TypeError, ValueError):
+        return None
+    if parsed > clock.now():
+        return None
+    return parsed.strftime(TIME_FORMAT)
+
 @app.route('/add', methods=['POST'])
 def add_item():
     data = load_data()
     now = clock.now()
+    payload = request.get_json(silent=True) or {}
+    name = str(payload.get('string') or '').strip()
+    lifespan = payload.get('lifespan')
     new_item = {
-        'string': request.json.get('string'),
-        'lifespan': request.json.get('lifespan'),
+        'string': name,
+        'lifespan': lifespan,
         'last_refreshed': now.strftime('%Y-%m-%dT%H:%M:%S'),
-        'icon': request.json.get('icon')
+        'icon': payload.get('icon')
     }
-    if new_item['string'] and isinstance(new_item['lifespan'], (int, float)):
+    if name and _valid_lifespan(lifespan):
         data.append(new_item)
         save_data(data)
         history = sync_history_with_items(load_history(), data)
@@ -251,6 +275,51 @@ def api_refresh_task(task_id):
             mark_refreshed(data, index)
             return jsonify({'success': True, 'id': task_id, 'string': item['string']})
     return jsonify({'success': False, 'error': 'not found'}), 404
+
+@app.route('/api/tasks/<task_id>', methods=['PATCH'])
+def api_update_task(task_id):
+    """Edit name / frequency / last-done date / icon of one task."""
+    payload = request.get_json(silent=True) or {}
+    data = load_data()
+    item = next((t for t in data if t['id'] == task_id), None)
+    if item is None:
+        return jsonify({'success': False, 'error': 'not found'}), 404
+
+    if 'string' in payload:
+        name = str(payload['string'] or '').strip()
+        if not name:
+            return jsonify({'success': False, 'error': 'name is required'}), 400
+        item['string'] = name
+    if 'lifespan' in payload:
+        if not _valid_lifespan(payload['lifespan']):
+            return jsonify({'success': False, 'error': 'frequency must be a positive number'}), 400
+        item['lifespan'] = payload['lifespan']
+    if 'icon' in payload:
+        icon = payload['icon']
+        if icon is not None and not (isinstance(icon, str) and ICON_PATTERN.match(icon)):
+            return jsonify({'success': False, 'error': 'invalid icon'}), 400
+        item['icon'] = icon
+    edited_last_done = None
+    if 'last_refreshed' in payload:
+        parsed = _parse_last_done(payload['last_refreshed'], item['last_refreshed'])
+        if parsed is None:
+            return jsonify({'success': False, 'error': 'invalid or future date'}), 400
+        if parsed != item['last_refreshed']:
+            item['last_refreshed'] = edited_last_done = parsed
+
+    save_data(data)
+    if edited_last_done:
+        log_event(task_id, 'edit', edited_last_done)
+    return jsonify({'success': True, 'item': item})
+
+@app.route('/api/tasks/<task_id>', methods=['DELETE'])
+def api_delete_task(task_id):
+    data = load_data()
+    remaining = [t for t in data if t['id'] != task_id]
+    if len(remaining) == len(data):
+        return jsonify({'success': False, 'error': 'not found'}), 404
+    save_data(remaining)
+    return jsonify({'success': True})
 
 @app.route('/delete/<int:item_index>', methods=['POST'])
 def delete_item(item_index):

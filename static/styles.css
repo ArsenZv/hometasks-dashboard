@@ -78,7 +78,6 @@ h2 { font-size: 14px; }
 /* ----- shell: page + corner potatoes ----- */
 #app {
     position: relative;
-    z-index: 1;
     width: min(96vw, 1400px);
     margin: 0 auto;
     padding: 24px 0 140px;
@@ -89,7 +88,7 @@ h2 { font-size: 14px; }
     right: 0;
     bottom: 0;
     width: clamp(160px, 22vw, 320px);
-    z-index: 0;
+    z-index: -1;
     pointer-events: none;
 }
 
@@ -246,35 +245,69 @@ button:disabled { background: var(--btn-disabled); color: var(--muted); cursor: 
 /* mobile tabs (hidden on desktop) */
 #mobile-tabs { display: none; }
 
-/* add-task row (Edit page) */
-.add-item-container { display: flex; gap: 10px; padding: 12px; margin-bottom: 20px; background: var(--card); border: var(--border); box-shadow: var(--shadow); }
+/* ----- edit page ----- */
+.page-head { display: flex; align-items: baseline; gap: 16px; margin-bottom: 16px; }
+.page-head .page-title { margin: 0; }
+#app-version { margin: 0; }
+
+.add-item-container { display: flex; gap: 10px; margin-bottom: 20px; }
 .add-item-container input { flex: 1; min-width: 0; }
 #new-item { flex: 3; }
-#add-button { flex: 1; background: var(--btn-disabled); }
-#add-button.ready { background: var(--btn-primary); }
+#add-button { display: flex; align-items: center; justify-content: center; gap: 8px; background: var(--btn-primary); }
+#add-button:disabled { background: var(--btn-disabled); }
+.btn-icon { width: 22px; height: 22px; }
 
-/* ----- edit page (re-skinned; reworked in a later block) ----- */
-#edit-list { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
-.edit-item-box { min-width: 0; display: flex; flex-direction: column; gap: 10px; padding: 14px; background: var(--card); border: var(--border); box-shadow: var(--shadow); }
-.edit-row { display: flex; gap: 10px; }
-.edit-row input, .edit-row button { flex: 1; min-width: 0; height: 44px; margin: 0; padding: 6px 10px; }
-.edit-lifespan { flex: 0.6 !important; }
-.delete-button { background: var(--btn-danger); }
-.delete-button:hover { background: #F08F84; }
+.table-panel { padding: 0; }
+.task-table { display: flex; flex-direction: column; }
+.task-row {
+    display: grid;
+    grid-template-columns: minmax(0, 3fr) 90px minmax(0, 1.5fr) minmax(0, 1.2fr);
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    padding: 10px 16px;
+    text-align: left;
+    background: transparent;
+    border: 0;
+    border-bottom: 2px solid var(--tan);
+    box-shadow: none;
+}
+.task-row:last-child { border-bottom: 0; }
+button.task-row:hover { background: var(--cream); }
+button.task-row:active { transform: none; background: var(--bg); }
+.task-row.header { font-family: var(--font-display); font-size: 10px; color: var(--muted); border-bottom: var(--border); padding-top: 14px; padding-bottom: 12px; }
 
-#save-button { width: 100%; margin-top: 20px; padding: 14px; background: var(--btn-disabled); font-family: var(--font-display); font-size: 13px; }
-#save-button.has-changes { background: var(--btn-primary); }
-#confirmation-message { padding: 10px; background: var(--task-green); border: var(--border); display: inline-block; }
+.cell-task { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.row-icon { width: 36px; height: 36px; flex: none; }
+.row-name { overflow-wrap: anywhere; }
+.cell-last { display: flex; flex-direction: column; }
+.status-square { display: inline-block; width: 26px; height: 26px; border: var(--border); }
+.header span:nth-child(2) { text-align: left; }
 
-/* flatpickr: pixel it a little */
-.flatpickr-calendar { border-radius: 0 !important; border: var(--border); box-shadow: var(--shadow) !important; font-family: var(--font-body); }
+/* modal */
+.modal { position: fixed; inset: 0; z-index: 50; display: flex; align-items: center; justify-content: center; padding: 16px; background: rgba(67, 43, 35, 0.55); }
+.modal.hidden { display: none; }
+.modal-box { width: min(480px, 100%); display: flex; flex-direction: column; gap: 14px; background: var(--card); }
+.modal-head { display: flex; align-items: center; gap: 12px; }
+.modal-head h2 { flex: 1; margin: 0; }
+.modal-icon { width: 48px; height: 48px; }
+.icon-button { padding: 6px; }
+.field { display: flex; flex-direction: column; gap: 6px; color: var(--muted); }
+.field input { color: var(--ink); width: 100%; }
+.error { margin: 0; padding: 8px 10px; background: var(--task-red); border: var(--border); }
+.error.hidden { display: none; }
+.modal-actions { display: flex; align-items: center; gap: 10px; margin-top: 4px; }
+.modal-actions .spacer { flex: 1; }
+.modal-actions button { display: inline-flex; align-items: center; gap: 6px; }
+.modal-actions .primary { background: var(--btn-primary); }
+.modal-actions .primary:disabled { background: var(--btn-disabled); }
+.modal-actions .danger { background: var(--btn-danger); }
+.modal-actions .danger.armed { background: var(--btn-warning); animation: blink 0.8s steps(2) infinite; }
 
 .no-transition { transition: none !important; }
 
 /* ----- responsive ----- */
 @media (max-width: 900px) {
-    #edit-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-
     #mobile-tabs { display: flex; gap: 10px; margin-bottom: 16px; }
     .tab-button { flex: 1; display: flex; align-items: center; justify-content: center; gap: 8px; font-family: var(--font-display); font-size: 12px; }
     .tab-button.active { background: var(--btn-primary); }
@@ -294,10 +327,13 @@ button:disabled { background: var(--btn-disabled); color: var(--muted); cursor: 
     .nav-button { font-size: 10px; padding: 8px 10px; }
     .nav-buttons { gap: 8px; }
     .brand-logo { width: 36px; height: 36px; }
-    #edit-list { grid-template-columns: 1fr; }
     .task-icon { width: 44px; height: 44px; }
     .task-name { font-size: 20px; }
-    .edit-row { flex-wrap: wrap; }
+    .task-row { grid-template-columns: minmax(0, 1fr) 36px; row-gap: 2px; padding: 10px 12px; }
+    .task-row.header { display: none; }
+    .cell-task { grid-column: 1; }
+    .cell-status { grid-column: 2; grid-row: 1; }
+    .cell-last, .cell-frequency { grid-column: 1 / -1; font-size: 16px; color: var(--muted); flex-direction: row; gap: 8px; padding-left: 48px; }
     .add-item-container { flex-direction: column; }
     .corner-potatoes { width: 130px; opacity: 0.9; }
 }
