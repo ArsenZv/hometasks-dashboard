@@ -78,9 +78,7 @@
         </div>
         <ul id="todo-list">
             {% for item in items %}
-                {% set item_date = item.last_refreshed | to_datetime %}
-                {% set time_difference = (current_time - item_date).total_seconds() / 86400 %}
-                <li class="{% if time_difference < item.lifespan / 2 and time_difference >= 0 %}green{% elif time_difference >= item.lifespan / 2 and time_difference < item.lifespan %}yellow{% else %}red{% endif %}" title="Last refreshed: {{ item.last_refreshed }} || Lifespan: {{ item.lifespan }} days" data-index="{{ loop.index0 }}">
+                <li class="{{ task_status(item, current_time) }}" title="Last refreshed: {{ item.last_refreshed }} || Lifespan: {{ item.lifespan }} days" data-index="{{ loop.index0 }}">
                     <span class="item-text">{{ item.string }}</span>
                     <span class="info-icon" onclick="event.stopPropagation(); this.parentElement.classList.toggle('show-info')">ℹ️</span>
                     <br>

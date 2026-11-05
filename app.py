@@ -3,6 +3,7 @@ import json
 from datetime import datetime, timedelta
 from subprocess import check_output
 import os
+import uuid
 from typing import Dict, List
 
 app = Flask(__name__)
@@ -18,16 +19,58 @@ DATA_FILE = 'data/data.json'
 HISTORY_FILE = 'data/refresh_history.json'
 CALENDAR_DAYS = 30
 
+TIME_FORMAT = '%Y-%m-%dT%H:%M:%S'
+
+def _ensure_ids(data):
+    """Give every task a stable id. Returns True if any id was added."""
+    changed = False
+    for item in data:
+        if not item.get('id'):
+            item['id'] = uuid.uuid4().hex[:8]
+            changed = True
+    return changed
+
 def load_data():
     try:
         with open(DATA_FILE, 'r') as file:
-            return json.load(file)
+            data = json.load(file)
     except FileNotFoundError:
         return []
+    if _ensure_ids(data):
+        save_data(data)
+    return data
 
 def save_data(data):
+    _ensure_ids(data)
     with open(DATA_FILE, 'w') as file:
         json.dump(data, file, indent=4)
+
+def task_age_days(item, now=None):
+    now = now or datetime.now()
+    return (now - datetime.strptime(item['last_refreshed'], TIME_FORMAT)).total_seconds() / 86400
+
+def task_status(item, now=None):
+    """green: under half of lifespan, yellow: half or more, red: expired."""
+    age = task_age_days(item, now)
+    lifespan = item['lifespan']
+    if 0 <= age < lifespan / 2:
+        return 'green'
+    if lifespan / 2 <= age < lifespan:
+        return 'yellow'
+    return 'red'
+
+app.jinja_env.globals['task_status'] = task_status
+
+def mark_refreshed(data, index):
+    """Refresh the task at `index`, update history, return the item."""
+    now = datetime.now()
+    data[index]['last_refreshed'] = now.strftime(TIME_FORMAT)
+    save_data(data)
+    history = load_history()
+    today_key = now.date().isoformat()
+    history[today_key] = history.get(today_key, 0) + 1
+    save_history(history)
+    return data[index]
 
 def _build_history_from_items(items: List[dict], days: int = CALENDAR_DAYS) -> Dict[str, int]:
     history: Dict[str, int] = {}
@@ -124,15 +167,32 @@ def add_item():
 def refresh_item(item_index):
     data = load_data()
     if 0 <= item_index < len(data):
-        now = datetime.now()
-        data[item_index]['last_refreshed'] = now.strftime('%Y-%m-%dT%H:%M:%S')
-        save_data(data)
-        history = load_history()
-        today_key = now.date().isoformat()
-        history[today_key] = history.get(today_key, 0) + 1
-        save_history(history)
-        return jsonify({'success': True, 'item': data[item_index]})
+        return jsonify({'success': True, 'item': mark_refreshed(data, item_index)})
     return jsonify({'success': False}), 400
+
+@app.route('/api/tasks')
+def api_tasks():
+    now = datetime.now()
+    tasks = []
+    for item in load_data():
+        tasks.append({
+            'id': item['id'],
+            'string': item['string'],
+            'lifespan': item['lifespan'],
+            'last_refreshed': item['last_refreshed'],
+            'age_days': round(task_age_days(item, now), 2),
+            'status': task_status(item, now),
+        })
+    return jsonify(tasks)
+
+@app.route('/api/tasks/<task_id>/refresh', methods=['POST'])
+def api_refresh_task(task_id):
+    data = load_data()
+    for index, item in enumerate(data):
+        if item['id'] == task_id:
+            mark_refreshed(data, index)
+            return jsonify({'success': True, 'id': task_id, 'string': item['string']})
+    return jsonify({'success': False, 'error': 'not found'}), 404
 
 @app.route('/delete/<int:item_index>', methods=['POST'])
 def delete_item(item_index):

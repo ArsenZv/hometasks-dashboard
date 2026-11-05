@@ -51,3 +51,7 @@ jobs:
       run: |
         docker buildx build --build-arg APP_VERSION=$new_tag --platform linux/amd64,linux/arm64 -t arsenzvdocker/hometasks-dashboard:$new_tag --push . 
         docker buildx build --build-arg APP_VERSION=$new_tag --platform linux/amd64,linux/arm64 -t arsenzvdocker/hometasks-dashboard:latest --push .
+
+    - name: Build and push Telegram bot image
+      run: |
+        docker buildx build --platform linux/amd64,linux/arm64 -t arsenzvdocker/hometasks-bot:$new_tag -t arsenzvdocker/hometasks-bot:latest --push ./bot

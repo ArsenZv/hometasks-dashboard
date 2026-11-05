@@ -4,7 +4,43 @@ services:
   hometasks-dashboard:
     image: arsenzvdocker/hometasks-dashboard:latest
     container_name: hometasks-dashboard
+    restart: unless-stopped
+    labels:
+      - com.centurylinklabs.watchtower.enable=true
     ports:
       - "5555:5555"
     volumes:
       - ./data:/app/data
+
+  hometasks-bot:
+    image: arsenzvdocker/hometasks-bot:latest
+    container_name: hometasks-bot
+    restart: unless-stopped
+    labels:
+      - com.centurylinklabs.watchtower.enable=true
+    depends_on:
+      - hometasks-dashboard
+    env_file:
+      - .env            # BOT_TOKEN and BOT_PASSWORD
+    environment:
+      TZ: Europe/Paris
+      DASHBOARD_URL: http://hometasks-dashboard:5555
+      SATURDAY_TIME: "10:00"
+      # DAILY_DIGEST_TIME: "09:00"   # uncomment for a daily priorities message
+    volumes:
+      - ./bot_data:/state
+
+  # Checks Docker Hub every 5 minutes and restarts the two containers above
+  # when a new :latest image was pushed. Only touches containers with the
+  # watchtower.enable label.
+  watchtower:
+    image: nickfedor/watchtower:latest
+    container_name: watchtower
+    restart: unless-stopped
+    environment:
+      TZ: Europe/Paris
+      WATCHTOWER_LABEL_ENABLE: "true"
+      WATCHTOWER_POLL_INTERVAL: "300"
+      WATCHTOWER_CLEANUP: "true"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
