@@ -6,6 +6,9 @@ import os
 import uuid
 from typing import Dict, List
 
+import clock
+import stats
+
 app = Flask(__name__)
 app.config['TEMPLATES_AUTO_RELOAD'] = True
 app.jinja_env.auto_reload = True
@@ -17,6 +20,7 @@ def to_datetime(value):
 
 DATA_FILE = 'data/data.json'
 HISTORY_FILE = 'data/refresh_history.json'
+COMPLETIONS_FILE = 'data/completions.json'
 CALENDAR_DAYS = 30
 
 TIME_FORMAT = '%Y-%m-%dT%H:%M:%S'
@@ -36,36 +40,77 @@ def load_data():
             data = json.load(file)
     except FileNotFoundError:
         return []
-    if _ensure_ids(data):
+    if _ensure_ids(data) | _ensure_tracking(data):
         save_data(data)
     return data
 
 def save_data(data):
     _ensure_ids(data)
+    _ensure_tracking(data)
+    os.makedirs(os.path.dirname(DATA_FILE), exist_ok=True)
     with open(DATA_FILE, 'w') as file:
         json.dump(data, file, indent=4)
 
+def load_events() -> List[dict]:
+    try:
+        with open(COMPLETIONS_FILE, 'r') as file:
+            events = json.load(file)
+            return events if isinstance(events, list) else []
+    except (FileNotFoundError, json.JSONDecodeError):
+        return []
+
+def _write_events(events: List[dict]):
+    """Atomic write so a crash can never leave a half-written log."""
+    os.makedirs(os.path.dirname(COMPLETIONS_FILE), exist_ok=True)
+    tmp = COMPLETIONS_FILE + '.tmp'
+    with open(tmp, 'w') as file:
+        json.dump(events, file, indent=1)
+    os.replace(tmp, COMPLETIONS_FILE)
+
+def log_event(task_id, kind, done_at, on_time=None, at=None):
+    """Append to the completion log. kind: baseline | done | edit."""
+    events = load_events()
+    events.append({
+        'task_id': task_id,
+        'kind': kind,
+        'at': (at or clock.now()).strftime(TIME_FORMAT),
+        'done_at': done_at,
+        'on_time': on_time,
+    })
+    _write_events(events)
+
+def _ensure_tracking(data):
+    """Give every task `created` + `icon`, and a baseline log event when it
+    starts being tracked (history starts from that moment, not before)."""
+    changed = False
+    for item in data:
+        if 'icon' not in item:
+            item['icon'] = None
+            changed = True
+        if not item.get('created'):
+            now = clock.now()
+            item['created'] = now.strftime(TIME_FORMAT)
+            log_event(item['id'], 'baseline', item['last_refreshed'], at=now)
+            changed = True
+    return changed
+
 def task_age_days(item, now=None):
-    now = now or datetime.now()
+    now = now or clock.now()
     return (now - datetime.strptime(item['last_refreshed'], TIME_FORMAT)).total_seconds() / 86400
 
 def task_status(item, now=None):
     """green: under half of lifespan, yellow: half or more, red: expired."""
-    age = task_age_days(item, now)
-    lifespan = item['lifespan']
-    if 0 <= age < lifespan / 2:
-        return 'green'
-    if lifespan / 2 <= age < lifespan:
-        return 'yellow'
-    return 'red'
+    return stats.status_from_age(task_age_days(item, now), item['lifespan'])
 
 app.jinja_env.globals['task_status'] = task_status
 
 def mark_refreshed(data, index):
     """Refresh the task at `index`, update history, return the item."""
-    now = datetime.now()
+    now = clock.now()
+    was_red = task_status(data[index], now) == 'red'
     data[index]['last_refreshed'] = now.strftime(TIME_FORMAT)
     save_data(data)
+    log_event(data[index]['id'], 'done', data[index]['last_refreshed'], on_time=not was_red, at=now)
     history = load_history()
     today_key = now.date().isoformat()
     history[today_key] = history.get(today_key, 0) + 1
@@ -77,7 +122,7 @@ def _build_history_from_items(items: List[dict], days: int = CALENDAR_DAYS) -> D
     if not items:
         return history
 
-    cutoff_date = (datetime.now() - timedelta(days=days - 1)).date()
+    cutoff_date = (clock.now() - timedelta(days=days - 1)).date()
     for item in items:
         last_refreshed = item.get('last_refreshed')
         if not last_refreshed:
@@ -118,7 +163,7 @@ def sync_history_with_items(history: Dict[str, int], items: List[dict]) -> Dict[
     return history
 
 def build_calendar_data(history: Dict[str, int], days: int = CALENDAR_DAYS):
-    today = datetime.now().date()
+    today = clock.now().date()
     start_date = today - timedelta(days=days - 1)
     calendar = []
     for offset in range(days):
@@ -133,7 +178,7 @@ def build_calendar_data(history: Dict[str, int], days: int = CALENDAR_DAYS):
 @app.route('/')
 def index():
     items = load_data()
-    current_time = datetime.now()
+    current_time = clock.now()
     history = sync_history_with_items(load_history(), items)
     save_history(history)
     calendar_data = build_calendar_data(history)
@@ -149,11 +194,12 @@ def index():
 @app.route('/add', methods=['POST'])
 def add_item():
     data = load_data()
-    now = datetime.now()
+    now = clock.now()
     new_item = {
         'string': request.json.get('string'),
         'lifespan': request.json.get('lifespan'),
-        'last_refreshed': now.strftime('%Y-%m-%dT%H:%M:%S')
+        'last_refreshed': now.strftime('%Y-%m-%dT%H:%M:%S'),
+        'icon': request.json.get('icon')
     }
     if new_item['string'] and isinstance(new_item['lifespan'], (int, float)):
         data.append(new_item)
@@ -172,9 +218,11 @@ def refresh_item(item_index):
 
 @app.route('/api/tasks')
 def api_tasks():
-    now = datetime.now()
+    now = clock.now()
     tasks = []
-    for item in load_data():
+    items = load_data()
+    metrics = {m['id']: m for m in stats.compute_stats(items, load_events(), 'all', now)['tasks']}
+    for item in items:
         tasks.append({
             'id': item['id'],
             'string': item['string'],
@@ -182,8 +230,18 @@ def api_tasks():
             'last_refreshed': item['last_refreshed'],
             'age_days': round(task_age_days(item, now), 2),
             'status': task_status(item, now),
+            'icon': item.get('icon'),
+            'on_time_pct': metrics[item['id']]['on_time_pct'],
+            'strip': metrics[item['id']]['strip'],
         })
     return jsonify(tasks)
+
+@app.route('/api/stats')
+def api_stats():
+    range_key = request.args.get('range', '30')
+    if range_key not in stats.RANGES:
+        return jsonify({'error': 'range must be 30, 90 or all'}), 400
+    return jsonify(stats.compute_stats(load_data(), load_events(), range_key))
 
 @app.route('/api/tasks/<task_id>/refresh', methods=['POST'])
 def api_refresh_task(task_id):
@@ -212,6 +270,15 @@ def edit():
 @app.route('/save', methods=['POST'])
 def save_changes():
     updated_items = request.json.get('items', [])
+    existing = {item['id']: item for item in load_data()}
+    for item in updated_items:
+        old = existing.get(item.get('id'))
+        if old:
+            # the edit page only sends some fields: keep created/icon/etc.
+            for key, value in old.items():
+                item.setdefault(key, value)
+            if item.get('last_refreshed') != old['last_refreshed']:
+                log_event(old['id'], 'edit', item['last_refreshed'])
     save_data(updated_items)
     history = sync_history_with_items(load_history(), updated_items)
     save_history(history)

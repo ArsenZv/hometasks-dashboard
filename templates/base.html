@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Potato Bakery Inc.{% endblock %}</title>
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/logo.png') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Tiny5&family=Press+Start+2P&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    {% block head %}{% endblock %}
+</head>
+<body>
+    <header id="navbar">
+        <a href="/" class="brand">
+            <img src="{{ url_for('static', filename='img/logo.png') }}" alt="" class="brand-logo">
+            <span class="brand-title">Potato Bakery Inc.</span>
+        </a>
+        <nav class="nav-buttons">
+            <a href="/" class="nav-button{% if request.path == '/' %} active{% endif %}">Home</a>
+            <a href="/edit" class="nav-button{% if request.path == '/edit' %} active{% endif %}">Edit</a>
+        </nav>
+    </header>
+
+    <main id="app">
+        {% block content %}{% endblock %}
+    </main>
+
+    <img src="{{ url_for('static', filename='img/baking_potatoes.png') }}" alt="" class="corner-potatoes" aria-hidden="true">
+
+    {% block scripts %}{% endblock %}
+</body>
+</html>

@@ -1,14 +1,6 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HomeTasks-dashboard</title>
-    <link rel="stylesheet" href="/static/styles.css">
-</head>
-<body>
-    <div id="app">
-        <h1>HomeTasks Dashboard</h1>
+{% extends "base.html" %}
+{% block title %}Potato Bakery Inc. · Home{% endblock %}
+{% block content %}
         <button id="dashboard-toggle" class="toggle-button" aria-expanded="false">
             <span class="toggle-icon">▼</span> Show Statistics
         </button>
@@ -61,9 +53,6 @@
             </div>
         </div>
         <div id="controls-row">
-            <a href="/edit" id="edit-link" class="toggle-button-round" title="Edit Items">
-                <span class="gear-icon">⚙️</span>
-            </a>
             <p id="today-date"></p>
             <button id="add-toggle" class="toggle-button-round" title="Add New Item">+</button>
             <button id="refresh-button" class="toggle-button-round" title="Refresh Data">↻</button>
@@ -85,7 +74,8 @@
                 </li>
             {% endfor %}
         </ul>
-    </div>
+{% endblock %}
+{% block scripts %}
     <script>
         (function() {
             // Dashboard state restoration
@@ -125,5 +115,4 @@
         const TOTAL_TASKS = {{ total_tasks }};
     </script>
     <script src="/static/app.js"></script>
-</body>
-</html>
+{% endblock %}
