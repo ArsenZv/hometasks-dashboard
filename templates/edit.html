@@ -6,6 +6,11 @@
 {% block content %}
         <h2 class="page-title">Edit Items</h2>
         <p id="app-version"></p>
+        <div class="add-item-container">
+            <input type="text" id="new-item" placeholder="New task">
+            <input type="number" id="new-lifespan" placeholder="Lifespan (days)" step="0.1" min="0">
+            <button id="add-button">Add</button>
+        </div>
         <ul id="edit-list">
             {% for item in items %}
                 <li class="edit-item-box" data-id="{{ item.id }}">

@@ -91,3 +91,28 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 });
+
+// Add a new task (moved here from the Home page)
+(function () {
+    const nameInput = document.getElementById('new-item');
+    const lifespanInput = document.getElementById('new-lifespan');
+    const addButton = document.getElementById('add-button');
+
+    const updateState = () => addButton.classList.toggle(
+        'ready', nameInput.value.trim() !== '' && lifespanInput.value.trim() !== '');
+    nameInput.addEventListener('input', updateState);
+    lifespanInput.addEventListener('input', updateState);
+
+    addButton.addEventListener('click', () => {
+        const string = nameInput.value.trim();
+        const lifespan = parseFloat(lifespanInput.value);
+        if (!string || isNaN(lifespan) || lifespan <= 0) return;
+        fetch('/add', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ string, lifespan })
+        })
+        .then(r => r.json())
+        .then(data => { if (data.success) location.reload(); else alert('Failed to add the task.'); });
+    });
+})();

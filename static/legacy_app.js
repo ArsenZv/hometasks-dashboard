@@ -1,3 +1,5 @@
+/* LEGACY (kept on purpose, not loaded by any page): old Home script incl. the
+   30-day calendar that used data/refresh_history.json. Replaced by home.js. */
 function determineLevel(count, totalTasks) {
     if (!totalTasks) {
         return 0;
