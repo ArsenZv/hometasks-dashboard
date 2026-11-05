@@ -2,3 +2,5 @@ data/data.json
 __pycache__/
 venv
 data/refresh_history.json
+.env
+bot_data/
