@@ -1,6 +1,5 @@
 const FALLBACK_ICON = 'other';
 const STATUS_LABEL = { green: 'on track', yellow: 'ok', red: 'overdue' };
-const CONFIRM_TIMEOUT_MS = 3000;
 
 function el(tag, className, text) {
     const node = document.createElement(tag);
@@ -36,7 +35,7 @@ function suggestionRow(item, detail) {
 function renderSuggestions(sug) {
     const box = document.getElementById('suggestions');
     box.innerHTML = '';
-    box.appendChild(el('h2', null, 'Priorities'));
+    box.appendChild(el('h2', null, 'Suggestions'));
 
     const before = el('div', 'suggestion-group');
     before.appendChild(el('h3', null, 'Do before it turns red'));
@@ -65,20 +64,16 @@ function statusStrip(strip) {
 function doneButton(task) {
     const btn = el('button', 'done-button');
     btn.title = 'Mark as done';
-    const idle = () => { btn.classList.remove('armed'); btn.replaceChildren(iconImg('done', 'done-icon')); };
-    let timer = null;
-    idle();
+    btn.appendChild(iconImg('done', 'done-icon'));
     btn.addEventListener('click', async () => {
-        if (!btn.classList.contains('armed')) {
-            btn.classList.add('armed');
-            btn.textContent = 'Confirm';
-            timer = setTimeout(idle, CONFIRM_TIMEOUT_MS);
-            return;
-        }
-        clearTimeout(timer);
         btn.disabled = true;
         const res = await fetch(`/api/tasks/${task.id}/refresh`, { method: 'POST' });
-        if (res.ok) loadAll(); else { btn.disabled = false; idle(); alert('Could not save, try again.'); }
+        if (res.ok) {
+            loadAll();
+        } else {
+            btn.disabled = false;
+            alert('Could not save, try again.');
+        }
     });
     return btn;
 }
