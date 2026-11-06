@@ -3,7 +3,8 @@
 - Password-protected: a chat must send BOT_PASSWORD before it gets anything.
 - Polls the dashboard API and notifies when a task turns yellow or red.
 - Saturday reminder (and optional daily digest) listing tasks to bring back to green.
-- /status, /list, /done: inspect tasks and mark any task (even a green one) as done.
+- /todo, /list, /done: inspect tasks and mark any task (even a green one) as done.
+- /report: household statistics for 30 days, 90 days or all time.
 """
 import hmac
 import json
@@ -84,12 +85,19 @@ async def refresh_task(context, task_id):
 
 
 # ---------- formatting ----------
-def fmt_task(t):
-    return f"{EMOJI[t['status']]} {t['string']} ({t['age_days']:.1f}/{t['lifespan']:g} days)"
+def label(t):
+    """Task name prefixed with its own emoji (set on the edit page), if any."""
+    return f"{t['emoji']} {t['string']}" if t.get("emoji") else t["string"]
+
+
+def fmt_task(t, colour=True):
+    """colour=False for alerts, whose header line already shows the colour."""
+    prefix = f"{EMOJI[t['status']]} " if colour else ""
+    return f"{prefix}{label(t)} ({t['age_days']:.1f}/{t['lifespan']:g} days)"
 
 
 def done_keyboard(tasks):
-    rows = [[InlineKeyboardButton(f"✅ {t['string']}", callback_data=f"done:{t['id']}")] for t in tasks]
+    rows = [[InlineKeyboardButton(f"✅ {label(t)}", callback_data=f"done:{t['id']}")] for t in tasks]
     return InlineKeyboardMarkup(rows) if rows else None
 
 
@@ -102,7 +110,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     state = load_state()
     if is_authorized(state, update.effective_chat.id):
         await update.message.reply_text(
-            "You're connected ✅\n/status – overview\n/list – all tasks\n/done – mark a task as done")
+            "You're connected ✅\n/todo – what needs doing\n/list – all tasks\n/done – mark a task as done")
     else:
         await update.message.reply_text("Please send the password.")
 
@@ -112,7 +120,7 @@ async def text_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = update.effective_chat.id
     state = load_state()
     if is_authorized(state, chat_id):
-        await update.message.reply_text("Use /status, /list or /done.")
+        await update.message.reply_text("Use /todo, /list, /done or /report.")
         return
 
     count, locked_until = failed_attempts.get(chat_id, (0, 0))
@@ -131,7 +139,7 @@ async def text_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         save_state(state)
         log.info("Chat %s authorised", chat_id)
         await context.bot.send_message(chat_id, "Welcome! You'll get alerts when tasks turn yellow or red.\n"
-                                                "/status – overview\n/list – all tasks\n/done – mark a task as done")
+                                                "/todo – what needs doing\n/list – all tasks\n/done – mark a task as done")
     else:
         count += 1
         locked = pytime.time() + LOCK_SECONDS if count >= MAX_FAILS else 0
@@ -153,7 +161,7 @@ def authorized_only(handler):
 
 # ---------- commands ----------
 @authorized_only
-async def status_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def todo_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
     tasks = await fetch_tasks(context)
     counts = {s: sum(1 for t in tasks if t["status"] == s) for s in EMOJI}
     lines = [f"🟢 {counts['green']}   🟡 {counts['yellow']}   🔴 {counts['red']}"]
@@ -174,6 +182,63 @@ async def list_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("\n".join(fmt_task(t) for t in tasks))
 
 
+RANGE_LABEL = {"30": "last 30 days", "90": "last 90 days", "all": "all time"}
+
+
+def range_keyboard():
+    return InlineKeyboardMarkup([[InlineKeyboardButton(text, callback_data=f"report:{key}")
+                                  for key, text in (("30", "30 days"), ("90", "90 days"), ("all", "All time"))]])
+
+
+def build_report(stats, range_key):
+    dist, prog = stats["distribution"], stats["progress"]
+    lines = [f"📊 Report – {RANGE_LABEL[range_key]}",
+             f"Overall progress: {prog['green']:g}% of task-days on track",
+             f"{EMOJI['green']} {dist['green']} on track",
+             f"{EMOJI['yellow']} {dist['yellow']} ok",
+             f"{EMOJI['red']} {dist['red']} overdue"]
+
+    def task_line(prefix, t):
+        return f"{prefix} {label(t)}"
+
+    if stats["oldest"]:
+        lines += ["", "Oldest tasks:"] + [f"{label(t)} ({t['age_days']:g} days)" for t in stats["oldest"]]
+    if stats["tasks"]:
+        lines += ["", task_line("❤️ Easiest:", stats["easiest"][0]),
+                  task_line("💔 Most hated:", stats["hated"][0])]
+    longest = stats["procrastination"]["longest"]
+    lines += ["", f"Longest procrastination: {longest} days" if longest
+              else "Longest procrastination: none in this period 🎉"]
+    return "\n".join(lines)
+
+
+async def fetch_report(context, range_key):
+    r = await client(context).get("/api/stats", params={"range": range_key})
+    r.raise_for_status()
+    return build_report(r.json(), range_key)
+
+
+@authorized_only
+async def report_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    arg = (context.args[0].lower() if context.args else "")
+    arg = {"30d": "30", "90d": "90", "30days": "30", "90days": "90", "alltime": "all"}.get(arg, arg)
+    if arg in RANGE_LABEL:
+        await update.message.reply_text(await fetch_report(context, arg))
+    else:
+        await update.message.reply_text("Which period?", reply_markup=range_keyboard())
+
+
+@authorized_only
+async def report_button(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    await query.answer()
+    try:
+        await query.edit_message_text(await fetch_report(context, query.data.split(":", 1)[1]),
+                                      reply_markup=range_keyboard())
+    except Exception:
+        log.debug("Report message unchanged or could not be edited", exc_info=True)
+
+
 @authorized_only
 async def done_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
     tasks = sorted_tasks(await fetch_tasks(context))
@@ -181,7 +246,7 @@ async def done_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("No tasks yet.")
         return
     kb = InlineKeyboardMarkup([[InlineKeyboardButton(
-        f"{EMOJI[t['status']]} {t['string']}", callback_data=f"done:{t['id']}")] for t in tasks])
+        f"{EMOJI[t['status']]} {label(t)}", callback_data=f"done:{t['id']}")] for t in tasks])
     await update.message.reply_text("Which task did you do? (any colour)", reply_markup=kb)
 
 
@@ -243,7 +308,7 @@ async def check_job(context: ContextTypes.DEFAULT_TYPE):
         old = previous.get(t["id"])
         if t["status"] in ("yellow", "red") and old != t["status"]:
             icon = EMOJI[t["status"]]
-            await broadcast(context, f"{icon} Task turned {t['status']}:\n{fmt_task(t)}", done_keyboard([t]))
+            await broadcast(context, f"{icon} Task turned {t['status']}:\n{fmt_task(t, colour=False)}", done_keyboard([t]))
 
     state["statuses"] = current
     save_state(state)
@@ -287,9 +352,11 @@ def main():
     app = Application.builder().token(BOT_TOKEN).post_init(post_init).post_shutdown(post_shutdown).build()
 
     app.add_handler(CommandHandler("start", start))
-    app.add_handler(CommandHandler("status", status_cmd))
+    app.add_handler(CommandHandler("todo", todo_cmd))
     app.add_handler(CommandHandler("list", list_cmd))
     app.add_handler(CommandHandler("done", done_cmd))
+    app.add_handler(CommandHandler("report", report_cmd))
+    app.add_handler(CallbackQueryHandler(report_button, pattern=r"^report:(30|90|all)$"))
     app.add_handler(CallbackQueryHandler(done_button, pattern=r"^done:"))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND & filters.ChatType.PRIVATE, text_handler))
 

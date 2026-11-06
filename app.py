@@ -204,6 +204,15 @@ def available_icons():
 def _valid_icon(icon):
     return icon is None or icon in available_icons()
 
+def _clean_emoji(value):
+    """Telegram emoji for a task: empty -> None, otherwise short text. Returns (ok, value)."""
+    if value is None:
+        return True, None
+    if not isinstance(value, str):
+        return False, None
+    value = value.strip()
+    return len(value) <= 16, (value or None)
+
 def _valid_lifespan(value):
     return isinstance(value, (int, float)) and not isinstance(value, bool) and value > 0
 
@@ -235,7 +244,8 @@ def add_item():
         'last_refreshed': now.strftime('%Y-%m-%dT%H:%M:%S'),
         'icon': payload.get('icon')
     }
-    if name and _valid_lifespan(lifespan) and _valid_icon(new_item['icon']):
+    emoji_ok, new_item['emoji'] = _clean_emoji(payload.get('emoji'))
+    if name and emoji_ok and _valid_lifespan(lifespan) and _valid_icon(new_item['icon']):
         data.append(new_item)
         save_data(data)
         history = sync_history_with_items(load_history(), data)
@@ -265,6 +275,7 @@ def api_tasks():
             'age_days': round(task_age_days(item, now), 2),
             'status': task_status(item, now),
             'icon': item.get('icon'),
+            'emoji': item.get('emoji'),
             'on_time_pct': metrics[item['id']]['on_time_pct'],
             'strip': metrics[item['id']]['strip'],
         })
@@ -313,6 +324,11 @@ def api_update_task(task_id):
         if not _valid_icon(icon):
             return jsonify({'success': False, 'error': 'invalid icon'}), 400
         item['icon'] = icon
+    if 'emoji' in payload:
+        emoji_ok, emoji = _clean_emoji(payload['emoji'])
+        if not emoji_ok:
+            return jsonify({'success': False, 'error': 'invalid emoji'}), 400
+        item['emoji'] = emoji
     edited_last_done = None
     if 'last_refreshed' in payload:
         parsed = _parse_last_done(payload['last_refreshed'], item['last_refreshed'])
