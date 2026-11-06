@@ -88,6 +88,7 @@ def task_metrics(task, task_events, now, window_start):
         'status': status_from_age(age, task['lifespan']),
         'age_days': round(age, 2),
         'icon': task.get('icon'),
+        'emoji': task.get('emoji'),
         'lifespan': task['lifespan'],
         'completions': len(done),
         'on_time_pct': round(100 * on_time / len(done)) if done else None,
@@ -171,7 +172,7 @@ def compute_stats(tasks, events, range_key='30', now=None):
                  key=lambda t: current[t['id']]['age'] - t['lifespan'], reverse=True)[:1]
 
     def brief(t, **extra):
-        return {'id': t['id'], 'string': t['string'], 'icon': t.get('icon'),
+        return {'id': t['id'], 'string': t['string'], 'icon': t.get('icon'), 'emoji': t.get('emoji'),
                 'status': current[t['id']]['status'],
                 'age_days': round(current[t['id']]['age'], 1), **extra}
 
