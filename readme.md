@@ -89,7 +89,7 @@ The bot is password-protected and lets you manage tasks from Telegram:
 
 - Notifies you when a task turns yellow or red.
 - Saturday reminder (default 10:00) listing tasks to bring back to green; optional daily digest.
-- Commands: `/todo` (tasks needing attention), `/list` (all tasks), `/done` (mark any task as done), `/report` (statistics for 30 days, 90 days or all time).
+- Commands: `/todo` (tasks needing attention), `/list` (all tasks), `/done` (mark any task as done), `/report` (statistics for 30 days, 90 days or all time), `/help` (list of commands).
 
 ### Configure it
 
