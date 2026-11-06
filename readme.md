@@ -1,7 +1,9 @@
+<p align="center"><img src="assets/logo.png" alt="HomeTasks Dashboard logo" width="200"></p>
+
 # HomeTasks Dashboard
 
 ## Overview
-HomeTasks Dashboard is a web application designed to help users manage their daily tasks effectively. It provides features such as task tracking, lifespan management, and dynamic updates.
+HomeTasks Dashboard is a web application designed to help users manage their daily hometasks effectively. It provides features such as task tracking, lifespan management, and dynamic updates.
 
 ## Features
 - Add new tasks with a specified lifespan.
@@ -42,21 +44,81 @@ HomeTasks Dashboard is a web application designed to help users manage their dai
 
 **Note:** Always activate the virtual environment before running the application or installing dependencies.
 
-## Using Docker-Compose
+## Running with Docker Compose (dashboard + Telegram bot)
 
-To run the application in a container using Docker-Compose:
+`docker-compose.yml` starts three containers:
 
-1. Ensure Docker and Docker-Compose are installed on your system.
-2. Use the existing `docker-compose.yml` file located in the project directory.
-3. Build and start the container:
-   ```bash
-   docker-compose up 
+| Service | Purpose |
+|---|---|
+| `hometasks-dashboard` | The web app on port 5555 |
+| `hometasks-bot` | The Telegram bot (optional, see below) |
+
+### What you need on the host
+
+Only `docker-compose.yml` and a `.env` file are required (images are pulled from Docker Hub). Put them in one folder and create the two data folders **manually before the first start**:
+
+```
+my-folder/
+├── docker-compose.yml
+├── .env              # you create this (see "Telegram bot" below)
+├── data/             # you create this: dashboard tasks and history
+└── bot_data/         # you create this: bot state (authorised chats)
+```
+
+```bash
+mkdir -p data bot_data
+```
+
+> If `bot_data/` (or `data/`) is missing, the container fails to start with a mount/permission error. Create both folders first.
+
+### Start
+
+```bash
+docker compose up -d
+# or rebuild from local sources: docker compose up -d --build
+docker compose logs -f hometasks-bot   # check the bot is running
+```
+
+Open the dashboard at `http://localhost:5555`.
+
+If you do not want the bot, delete the `hometasks-bot` service from `docker-compose.yml` (and `bot_data/`, `.env` are then not needed).
+
+## Telegram bot
+
+The bot is password-protected and lets you manage tasks from Telegram:
+
+- Notifies you when a task turns yellow or red.
+- Saturday reminder (default 10:00) listing tasks to bring back to green; optional daily digest.
+- Commands: `/todo` (tasks needing attention), `/list` (all tasks), `/done` (mark any task as done), `/report` (statistics for 30 days, 90 days or all time).
+
+### Configure it
+
+1. **Create the bot**: in Telegram open [@BotFather](https://t.me/BotFather), send `/newbot`, pick a name and username, and copy the **token** it gives you.
+2. **Create the `.env` file** next to `docker-compose.yml`:
+   ```env
+   BOT_TOKEN=123456789:your-token-from-botfather
+   BOT_PASSWORD=choose-a-long-password
+   TZ=Europe/Paris
+   DASHBOARD_URL=http://<dashboard-host>:5555
    ```
-   optionally
-   ```bash
-   docker-compose up --build
-   ```
-4. Access the application at `http://localhost:5555` in your browser.
+   - `BOT_TOKEN`: from BotFather (required).
+   - `BOT_PASSWORD`: anyone who sends this to the bot gets access, so make it long and private (required).
+   - `DASHBOARD_URL`: address the bot uses to reach the dashboard (required), e.g. your self-hosted DNS name or the compose service name with port 5555.
+   - `TZ`: your timezone, used for the Saturday/daily messages.
+   
+   `.env` is git-ignored and must never be committed.
+3. **Create the folders** and start: `mkdir -p data bot_data && docker compose up -d`.
+4. **Connect**: open your bot in Telegram, send `/start`, then send the password. The bot deletes your password message and remembers your chat (stored in `bot_data/`). Repeated wrong passwords are temporarily locked out.
+
+### Optional settings
+
+Set in the `environment:` section of `hometasks-bot` in `docker-compose.yml`:
+
+| Variable | Default | Meaning |
+|---|---|---|
+| `SATURDAY_TIME` | `10:00` | Time of the Saturday reminder |
+| `DAILY_DIGEST_TIME` | disabled | e.g. `09:00` for a daily priorities message |
+| `CHECK_INTERVAL` | `60` | Seconds between dashboard checks for status changes |
 
 ## Usage
 - Add tasks using the input fields and "Add" button.
@@ -70,7 +132,9 @@ To run the application in a container using Docker-Compose:
 - `static/`: Contains JavaScript and CSS files.
 - `templates/`: Contains HTML templates.
 - `app.py`: Main application file.
-- `data/`: Stores task data in JSON format.
+- `data/`: Stores task data in JSON format (git-ignored).
+- `bot/`: Telegram bot source and Dockerfile.
+- `bot_data/`: Bot state (git-ignored, create manually for Docker).
 
 ## License
 This project is licensed under the MIT License.

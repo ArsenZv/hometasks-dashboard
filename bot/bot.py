@@ -25,7 +25,7 @@ log = logging.getLogger("hometasks-bot")
 
 BOT_TOKEN = os.environ["BOT_TOKEN"]
 BOT_PASSWORD = os.environ["BOT_PASSWORD"]
-DASHBOARD_URL = os.getenv("DASHBOARD_URL", "http://hometasks-dashboard:5555")
+DASHBOARD_URL = os.environ["DASHBOARD_URL"]
 TZ = ZoneInfo(os.getenv("TZ", "Europe/Paris"))
 SATURDAY_TIME = os.getenv("SATURDAY_TIME", "10:00")
 DAILY_DIGEST_TIME = os.getenv("DAILY_DIGEST_TIME", "")  # e.g. "09:00"; empty = disabled
