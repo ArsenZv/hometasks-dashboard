@@ -22,12 +22,15 @@
         </div>
 
         <div class="panel">
-            <h2>Overall Progress</h2>
+            <div class="panel-head">
+                <h2>Overall Progress</h2>
+                <span class="hint">share of task-days a task was still green</span>
+            </div>
             <div id="progress"></div>
         </div>
 
         <div class="stats-row">
-            <div class="panel">
+            <div class="panel donut-panel">
                 <h2>Task Distribution</h2>
                 <div id="donut"></div>
             </div>
@@ -49,8 +52,10 @@
         </div>
 
         <div class="panel">
-            <h2>Procrastination Periods</h2>
-            <p class="muted small">Streaks of days when at least half of the tasks were red.</p>
+            <div class="panel-head">
+                <h2>Procrastination Periods</h2>
+                <span class="hint">streaks of days with at least half of the tasks red · x: length in days · y: how many times</span>
+            </div>
             <div id="procrastination"></div>
         </div>
     </section>

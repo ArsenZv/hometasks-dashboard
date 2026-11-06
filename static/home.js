@@ -148,13 +148,14 @@ function renderProgress(p) {
     seg.style.width = `${p.green}%`;
     seg.style.background = COLORS.green;
     seg.title = `green: ${p.green}%`;
+    // a divider between green and grey, but only when both are visible
+    seg.classList.toggle('edge', p.green > 0 && p.green < 100);
     bar.appendChild(seg);
     box.appendChild(bar);
     const legend = el('div', 'legend');
     legend.appendChild(legendItem(COLORS.green, `Done in time ${p.green}%`));
     legend.appendChild(legendItem('#E5D9CA', `Not on track ${Math.round((100 - p.green) * 10) / 10}%`));
     box.appendChild(legend);
-    box.appendChild(el('p', 'muted small', 'Share of all task-days (task × day) in which the task was still green.'));
 }
 
 function arcPath(cx, cy, rOuter, rInner, a0, a1) {
@@ -187,14 +188,16 @@ function renderDonut(dist) {
             angle += span;
         });
     }
-    const label = svg('text', { x: cx, y: cy + 8, 'text-anchor': 'middle', class: 'donut-total' });
+    const label = svg('text', { x: cx, y: cy, 'text-anchor': 'middle', 'dominant-baseline': 'central', class: 'donut-total' });
     label.textContent = total;
     chart.appendChild(label);
-    box.appendChild(chart);
 
     const legend = el('div', 'legend');
     ['green', 'yellow', 'red'].forEach(c => legend.appendChild(legendItem(COLORS[c], `${dist[c]} ${STATUS_LABEL[c]}`)));
-    box.appendChild(legend);
+    const wrap = el('div', 'donut-wrap');
+    wrap.appendChild(chart);
+    wrap.appendChild(legend);
+    box.appendChild(wrap);
 }
 
 function renderOldest(oldest) {
@@ -220,14 +223,15 @@ function renderHighlight(id, task, describe) {
     card.appendChild(iconImg(task.icon, 'highlight-icon'));
     const text = el('div', 'highlight-text');
     text.appendChild(el('div', 'highlight-name', task.string));
-    text.appendChild(el('div', 'muted small', describe(task)));
+    const detail = el('div', 'muted small', describe(task));
+    detail.title = `Done ${task.completions}× in this period; due every ${task.lifespan} day(s). ${task.ease}× means done ${task.ease} times as often as needed to never turn red.`;
+    text.appendChild(detail);
     card.appendChild(text);
     box.appendChild(card);
 }
 
 function describeEase(t) {
-    const every = t.lifespan === 1 ? 'every day' : `every ${t.lifespan} days`;
-    return `done ${t.completions}x, due ${every} (${t.ease}x of needed)`;
+    return `done ${t.completions}× · ${t.ease}× of due`;
 }
 
 function renderProcrastination(p) {
@@ -241,7 +245,7 @@ function renderProcrastination(p) {
     const bins = Array.from({ length: p.longest }, (_, i) => ({ length: i + 1, count: counts.get(i + 1) || 0 }));
     const maxCount = Math.max(...bins.map(b => b.count));
 
-    const [W, H, padL, padB, padT] = [Math.max(320, bins.length * 34 + 50), 170, 34, 30, 14];
+    const [W, H, padL, padB, padT] = [Math.max(260, bins.length * 30 + 44), 120, 28, 22, 10];
     const chart = svg('svg', { viewBox: `0 0 ${W} ${H}`, class: 'hist-svg', role: 'img' });
     const plotH = H - padB - padT;
     const bw = (W - padL - 8) / bins.length;
@@ -263,13 +267,12 @@ function renderProcrastination(p) {
             bar.appendChild(tip);
             chart.appendChild(bar);
         }
-        const t = svg('text', { x: x + (bw - 8) / 2, y: H - 12, 'text-anchor': 'middle', class: 'axis-text' });
+        const t = svg('text', { x: x + (bw - 8) / 2, y: H - 6, 'text-anchor': 'middle', class: 'axis-text' });
         t.textContent = b.length;
         chart.appendChild(t);
     });
     chart.appendChild(svg('line', { x1: padL, x2: W - 8, y1: padT + plotH, y2: padT + plotH, stroke: INK, 'stroke-width': 3 }));
     box.appendChild(chart);
-    box.appendChild(el('p', 'axis-caption', 'x: length of the streak (days) · y: how many times'));
     box.appendChild(el('p', 'big-number',
         `Longest: ${p.longest} day${p.longest === 1 ? '' : 's'}` + (p.current ? ` · happening now: ${p.current}` : '')));
 }
