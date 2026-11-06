@@ -183,6 +183,7 @@ function isDirty() {
     return $('edit-name').value.trim() !== editing.string
         || parseFloat($('edit-lifespan').value) !== editing.lifespan
         || $('edit-date').value !== datePart(editing.last_refreshed)
+        || $('edit-emoji').value.trim() !== (editing.emoji || '')
         || modalIcon !== (editing.icon || null);
 }
 
@@ -198,6 +199,7 @@ function openModal(task) {
     closePicker($('modal-icon-button'), $('modal-icon-picker'));
     $('edit-name').value = task.string;
     $('edit-lifespan').value = task.lifespan;
+    $('edit-emoji').value = task.emoji || '';
     $('edit-date').value = datePart(task.last_refreshed);
     $('edit-date').max = datePart(new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString());
     showError('');
@@ -213,7 +215,7 @@ function closeModal() {
     $('modal').classList.add('hidden');
 }
 
-['edit-name', 'edit-lifespan', 'edit-date'].forEach(id => $(id).addEventListener('input', syncSaveButton));
+['edit-name', 'edit-lifespan', 'edit-emoji', 'edit-date'].forEach(id => $(id).addEventListener('input', syncSaveButton));
 
 $('modal-save').addEventListener('click', async () => {
     if (!editing || $('modal-save').disabled) return;
@@ -222,6 +224,7 @@ $('modal-save').addEventListener('click', async () => {
     if (parseFloat($('edit-lifespan').value) !== editing.lifespan) payload.lifespan = parseFloat($('edit-lifespan').value);
     if ($('edit-date').value !== datePart(editing.last_refreshed)) payload.last_refreshed = $('edit-date').value;
     if (modalIcon !== (editing.icon || null)) payload.icon = modalIcon;
+    if ($('edit-emoji').value.trim() !== (editing.emoji || '')) payload.emoji = $('edit-emoji').value.trim();
 
     $('modal-save').disabled = true;
     const res = await fetch(`/api/tasks/${editing.id}`, {
