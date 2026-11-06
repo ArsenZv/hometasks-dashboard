@@ -18,6 +18,7 @@
     --task-yellow: #F6D996;
     --task-red: #F5AAA1;
 
+    --terracotta-light: #F5DCCB;   /* header + suggestions background */
     --nav-h: 68px;
     --font-small: 'Handjet', 'Tiny5', monospace;   /* more legible than Tiny5 at small sizes */
     --font-display: 'Press Start 2P', monospace;
@@ -57,7 +58,7 @@ h2 { font-size: 14px; }
     gap: 16px;
     height: var(--nav-h);
     padding: 0 24px;
-    background: var(--cream);
+    background: var(--terracotta-light);
     border-bottom: var(--border);
 }
 
@@ -153,7 +154,7 @@ button:disabled { background: var(--btn-disabled); color: var(--muted); cursor: 
 
 /* left column: suggestions stay on top, only the list scrolls */
 #tasks-column { gap: 16px; }
-#suggestions { flex: none; margin: 2px 8px 0 2px; padding: 0; background: #F5DCCB; }   /* very light terracotta (warm tint of the header band) */   /* same width as the cards below */
+#suggestions { flex: none; margin: 2px 8px 0 2px; padding: 0; background: var(--terracotta-light); }   /* same width as the cards below */
 #suggestions h2 { display: flex; align-items: center; justify-content: center; gap: 12px; margin: 0; padding: 6px 12px; background: var(--btn-primary); border-bottom: var(--border); }
 .suggestions-icon { width: 24px; height: 24px; }
 .suggestion-group { padding: 2px 12px 6px; }
@@ -226,13 +227,13 @@ button:disabled { background: var(--btn-disabled); color: var(--muted); cursor: 
 .legend-swatch { width: 11px; height: 11px; border: 2px solid var(--ink); }
 .big-number { margin: 6px 0 0; font-family: var(--font-small); font-weight: 500; font-size: 20px; }
 
-/* donut: chart left, legend as a column on the right */
-.donut-wrap { display: flex; align-items: center; justify-content: flex-start; gap: 14px; }
-#stats-column .donut-panel { padding: 14px 14px 4px 18px; }
-.donut-panel h2 { margin-left: -6px; }   /* keep the title aligned with the other panels */
-.donut-svg { display: block; flex: none; width: 110px; height: 110px; }
+/* donut: the box is split 50/50 - chart centred in the left half, legend centred in the right half */
+.donut-panel { display: flex; flex-direction: column; }
+#donut { flex: 1; display: flex; align-items: center; }
+.donut-wrap { width: 100%; display: grid; grid-template-columns: 1fr 1fr; align-items: center; justify-items: center; gap: 8px; }
+.donut-svg { display: block; width: 100%; max-width: 110px; height: auto; aspect-ratio: 1; }
 .donut-total { font-family: var(--font-display); font-size: 18px; fill: var(--ink); }
-.donut-wrap .legend { flex-direction: column; gap: 6px; margin: 0; font-size: 19px; }
+.donut-wrap .legend { flex-direction: column; align-items: flex-start; gap: 6px; margin: 0; font-size: 19px; }
 
 #oldest-tasks-list { display: flex; flex-direction: column; gap: 8px; }
 .oldest-task { display: flex; align-items: center; gap: 8px; padding: 5px 8px; border: var(--border); }
@@ -265,9 +266,7 @@ button:disabled { background: var(--btn-disabled); color: var(--muted); cursor: 
     #stats-column .panel { padding: 8px 10px; }
     #stats-column .panel h2 { font-size: 10px; }
     .title-icon { width: 18px; height: 18px; margin-right: 4px; }
-    #stats-column .donut-panel { padding: 10px 8px 4px 12px; }
-    .donut-svg { width: 88px; height: 88px; }
-    .donut-wrap { gap: 8px; }
+    .donut-svg { max-width: 92px; }
     .donut-wrap .legend { font-size: 18px; gap: 4px; }
     .highlight { gap: 6px; padding: 5px 6px; }
     .highlight-icon { width: 32px; height: 32px; }
