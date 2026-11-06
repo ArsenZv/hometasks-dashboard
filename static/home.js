@@ -16,6 +16,13 @@ function iconImg(name, className) {
     return img;
 }
 
+function timeAgoShort(ageDays) {
+    if (ageDays < 1 / 24) return 'now';
+    if (ageDays < 1) return `${Math.floor(ageDays * 24)}h ago`;
+    const days = Math.floor(ageDays);
+    return days === 1 ? 'yesterday' : `${days}d ago`;
+}
+
 function timeAgo(ageDays) {
     if (ageDays < 1 / 24) return 'just now';
     if (ageDays < 1) return `${Math.floor(ageDays * 24)}h ago`;
@@ -35,7 +42,11 @@ function suggestionRow(item, detail) {
 function renderSuggestions(sug) {
     const box = document.getElementById('suggestions');
     box.innerHTML = '';
-    box.appendChild(el('h2', null, 'Suggestions'));
+    const title = el('h2');
+    title.appendChild(iconImg('suggestion', 'suggestions-icon'));
+    title.appendChild(el('span', null, 'Suggestions'));
+    title.appendChild(iconImg('suggestion', 'suggestions-icon'));
+    box.appendChild(title);
 
     const before = el('div', 'suggestion-group');
     before.appendChild(el('h3', null, 'Do before it turns red'));
@@ -82,17 +93,16 @@ function taskCard(task) {
     const card = el('li', `task-card ${task.status}`);
     card.dataset.id = task.id;
     card.appendChild(iconImg(task.icon, 'task-icon'));
-
-    const main = el('div', 'task-main');
-    main.appendChild(el('div', 'task-name', task.string));
-    const meta = el('div', 'task-meta');
-    meta.appendChild(el('span', null, `On time: ${task.on_time_pct === null ? '–' : task.on_time_pct + '%'}`));
-    meta.appendChild(el('span', null, `Last done: ${timeAgo(task.age_days)}`));
-    main.appendChild(meta);
-    main.appendChild(statusStrip(task.strip));
-    card.appendChild(main);
-
+    card.appendChild(el('div', 'task-name', task.string));
     card.appendChild(doneButton(task));
+
+    const details = el('div', 'task-details');
+    const meta = el('div', 'task-meta');
+    meta.appendChild(el('span', null, `On time ${task.on_time_pct === null ? '–' : task.on_time_pct + '%'}`));
+    meta.appendChild(el('span', null, `Last done ${timeAgoShort(task.age_days)}`));
+    details.appendChild(meta);
+    details.appendChild(statusStrip(task.strip));
+    card.appendChild(details);
     return card;
 }
 
@@ -134,21 +144,17 @@ function renderProgress(p) {
     const box = document.getElementById('progress');
     box.innerHTML = '';
     const bar = el('div', 'progress-bar');
-    [['green', p.green], ['yellow', p.yellow]].forEach(([color, pct]) => {
-        const seg = el('div', 'progress-seg');
-        seg.style.width = `${pct}%`;
-        seg.style.background = COLORS[color];
-        seg.title = `${color}: ${pct}%`;
-        bar.appendChild(seg);
-    });
+    const seg = el('div', 'progress-seg');
+    seg.style.width = `${p.green}%`;
+    seg.style.background = COLORS.green;
+    seg.title = `green: ${p.green}%`;
+    bar.appendChild(seg);
     box.appendChild(bar);
     const legend = el('div', 'legend');
     legend.appendChild(legendItem(COLORS.green, `Done in time ${p.green}%`));
-    legend.appendChild(legendItem(COLORS.yellow, `Still OK ${p.yellow}%`));
-    legend.appendChild(legendItem('#E5D9CA', `Overdue ${p.red}%`));
+    legend.appendChild(legendItem('#E5D9CA', `Not on track ${Math.round((100 - p.green) * 10) / 10}%`));
     box.appendChild(legend);
-    const total = Math.round((p.green + p.yellow) * 10) / 10;
-    box.appendChild(el('p', 'big-number', `${total}% of the time everything was under control`));
+    box.appendChild(el('p', 'muted small', 'Share of all task-days (task × day) in which the task was still green.'));
 }
 
 function arcPath(cx, cy, rOuter, rInner, a0, a1) {

@@ -193,7 +193,7 @@ def index():
 
 ICON_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static', 'icons')
 # icons used by the interface itself: not offered as task icons
-UI_ICONS = {'checkbox', 'close', 'done', 'edit', 'hated', 'liked', 'plus', 'trash'}
+UI_ICONS = {'checkbox', 'close', 'done', 'edit', 'hated', 'liked', 'plus', 'suggestion', 'trash'}
 
 def available_icons():
     """Task icons = every PNG in static/icons except the UI ones. Drop a new
