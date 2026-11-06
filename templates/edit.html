@@ -1,38 +1,69 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Edit Items</title>
-    <link rel="stylesheet" href="/static/styles.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/flatpickr.min.css">
-</head>
-<body>
-    <div id="app">
-        <h1>Edit Items</h1>
-        <p id="app-version"></p>
-        <a href="/" id="dashboard-button" class="dashboard-button">◀ Dashboard</a>
-        <ul id="edit-list">
-            {% for item in items %}
-                <li class="edit-item-box" data-id="{{ item.id }}">
-                    <div class="edit-row">
-                        <input type="text" value="{{ item.string }}" class="edit-string" data-index="{{ loop.index0 }}" placeholder="Task Name" data-original="{{ item.string }}">
-                        <input type="number" value="{{ item.lifespan }}" class="edit-lifespan" data-index="{{ loop.index0 }}" step="0.1" placeholder="Days" data-original="{{ item.lifespan }}">
-                    </div>
-                    <div class="edit-row">
-                        <input type="text" value="{{ item.last_refreshed }}" class="edit-date" data-index="{{ loop.index0 }}" placeholder="Last Refreshed" data-original="{{ item.last_refreshed }}">
-                        <button class="delete-button" data-index="{{ loop.index0 }}">Delete</button>
-                    </div>
-                </li>
-            {% endfor %}
-        </ul>
-        <button id="save-button">Save Changes</button>
-        <div id="confirmation-message" style="display: none; color: green; margin-top: 10px;">Changes saved successfully!</div>
+{% extends "base.html" %}
+{% block title %}Potato Bakery Inc. · Edit{% endblock %}
+{% block content %}
+<div class="page-head">
+    <h2 class="page-title">Edit Tasks</h2>
+    <p id="app-version">Version: {{ app_version }}</p>
+</div>
+
+<form id="add-form" class="panel add-item-container" autocomplete="off">
+    <button type="button" id="add-icon-button" class="icon-pick-button" title="Choose an icon" aria-expanded="false">
+        <img id="add-icon" alt="Task icon" class="pick-icon">
+    </button>
+    <input type="text" id="new-item" placeholder="New task name" maxlength="80" aria-label="New task name">
+    <input type="number" id="new-lifespan" placeholder="Every … days" step="0.5" min="0.5" aria-label="Frequency in days">
+    <button type="submit" id="add-button" disabled>
+        <img src="{{ url_for('static', filename='icons/plus.png') }}" alt="" class="btn-icon"> Add
+    </button>
+</form>
+<div id="add-icon-picker" class="panel icon-picker hidden" role="listbox" aria-label="Task icon"></div>
+
+<div class="panel table-panel">
+    <div class="task-table" role="table">
+        <div class="task-row header" role="row">
+            <span role="columnheader">Task</span>
+            <span role="columnheader">Status</span>
+            <span role="columnheader">Last done</span>
+            <span role="columnheader">Frequency</span>
+        </div>
+        <div id="task-rows"></div>
     </div>
-    <script>
-        const APP_VERSION = "{{ app_version }}";
-    </script>
-    <script src="/static/edit.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/flatpickr.min.js"></script>
-</body>
-</html>
+</div>
+
+<div id="modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <div class="modal-box panel">
+        <div class="modal-head">
+            <button type="button" id="modal-icon-button" class="icon-pick-button" title="Change icon" aria-expanded="false">
+                <img id="modal-icon" class="pick-icon" alt="Task icon">
+            </button>
+            <h2 id="modal-title">Edit task</h2>
+            <button type="button" id="modal-close" class="icon-button" title="Close">
+                <img src="{{ url_for('static', filename='icons/close.png') }}" alt="Close" class="btn-icon">
+            </button>
+        </div>
+        <div id="modal-icon-picker" class="icon-picker hidden" role="listbox" aria-label="Task icon"></div>
+        <label class="field">Name
+            <input type="text" id="edit-name" maxlength="80">
+        </label>
+        <label class="field">Repeat every (days)
+            <input type="number" id="edit-lifespan" step="0.5" min="0.5">
+        </label>
+        <label class="field">Last done
+            <input type="date" id="edit-date">
+        </label>
+        <p id="modal-error" class="error hidden"></p>
+        <div class="modal-actions">
+            <button type="button" id="modal-delete" class="danger">
+                <img src="{{ url_for('static', filename='icons/trash.png') }}" alt="" class="btn-icon"> Delete
+            </button>
+            <span class="spacer"></span>
+            <button type="button" id="modal-cancel">Cancel</button>
+            <button type="button" id="modal-save" class="primary" disabled>Save</button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>const ICON_BASE = "{{ url_for('static', filename='icons/') }}";</script>
+<script src="{{ url_for('static', filename='edit.js') }}"></script>
+{% endblock %}
