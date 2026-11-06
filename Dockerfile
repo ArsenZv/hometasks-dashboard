@@ -8,6 +8,8 @@ WORKDIR /app
 COPY . /app
 
 # Set the VERSION environment variable to the latest git tag
+ENV TZ=Europe/Paris
+
 ARG APP_VERSION
 ENV APP_VERSION=$APP_VERSION
 

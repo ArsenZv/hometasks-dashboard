@@ -4,3 +4,5 @@ venv
 data/refresh_history.json
 .env
 bot_data/
+data/completions.json
+data/backup-before-seed/
