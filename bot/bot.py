@@ -5,6 +5,7 @@
 - Saturday reminder (and optional daily digest) listing tasks to bring back to green.
 - /todo, /list, /done: inspect tasks and mark any task (even a green one) as done.
 - /report: household statistics for 30 days, 90 days or all time.
+- /help: list of commands (tappable in Telegram).
 """
 import hmac
 import json
@@ -15,7 +16,7 @@ from datetime import time
 from zoneinfo import ZoneInfo
 
 import httpx
-from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
+from telegram import BotCommand, InlineKeyboardButton, InlineKeyboardMarkup, Update
 from telegram.ext import (Application, CallbackQueryHandler, CommandHandler,
                           ContextTypes, MessageHandler, filters)
 
@@ -36,6 +37,16 @@ MAX_FAILS = 5
 LOCK_SECONDS = 15 * 60
 EMOJI = {"green": "🟢", "yellow": "🟡", "red": "🔴"}
 ORDER = {"red": 0, "yellow": 1, "green": 2}
+
+# (command, description) - used by /help and the bot's command menu.
+COMMANDS = [
+    ("todo", "What needs doing"),
+    ("list", "All tasks"),
+    ("done", "Mark a task as done"),
+    ("report", "Statistics for 30 days, 90 days or all time"),
+    ("help", "Show this list"),
+]
+HELP_TEXT = "Available commands (tap one to run it):\n\n" + "\n".join(f"/{c} – {d}" for c, d in COMMANDS)
 
 failed_attempts = {}  # chat_id -> (count, locked_until)
 
@@ -110,7 +121,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     state = load_state()
     if is_authorized(state, update.effective_chat.id):
         await update.message.reply_text(
-            "You're connected ✅\n/todo – what needs doing\n/list – all tasks\n/done – mark a task as done")
+            "You're connected ✅\n\n" + HELP_TEXT)
     else:
         await update.message.reply_text("Please send the password.")
 
@@ -120,7 +131,7 @@ async def text_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = update.effective_chat.id
     state = load_state()
     if is_authorized(state, chat_id):
-        await update.message.reply_text("Use /todo, /list, /done or /report.")
+        await update.message.reply_text(HELP_TEXT)
         return
 
     count, locked_until = failed_attempts.get(chat_id, (0, 0))
@@ -138,8 +149,7 @@ async def text_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         state["chats"].append(chat_id)
         save_state(state)
         log.info("Chat %s authorised", chat_id)
-        await context.bot.send_message(chat_id, "Welcome! You'll get alerts when tasks turn yellow or red.\n"
-                                                "/todo – what needs doing\n/list – all tasks\n/done – mark a task as done")
+        await context.bot.send_message(chat_id, "Welcome! You'll get alerts when tasks turn yellow or red.\n\n" + HELP_TEXT)
     else:
         count += 1
         locked = pytime.time() + LOCK_SECONDS if count >= MAX_FAILS else 0
@@ -160,6 +170,11 @@ def authorized_only(handler):
 
 
 # ---------- commands ----------
+@authorized_only
+async def help_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text(HELP_TEXT)
+
+
 @authorized_only
 async def todo_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
     tasks = await fetch_tasks(context)
@@ -232,11 +247,13 @@ async def report_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def report_button(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
-    try:
-        await query.edit_message_text(await fetch_report(context, query.data.split(":", 1)[1]),
-                                      reply_markup=range_keyboard())
-    except Exception:
-        log.debug("Report message unchanged or could not be edited", exc_info=True)
+    # Send the report as a new message; the period picker stays untouched.
+    await query.message.reply_text(await fetch_report(context, query.data.split(":", 1)[1]))
+
+
+@authorized_only
+async def unknown_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text("Unknown command. Please check /help for commands.")
 
 
 @authorized_only
@@ -342,6 +359,7 @@ def parse_hhmm(value):
 
 async def post_init(app: Application):
     app.bot_data["http"] = httpx.AsyncClient(base_url=DASHBOARD_URL, timeout=10)
+    await app.bot.set_my_commands([BotCommand(c, d) for c, d in COMMANDS])  # Telegram's "/" menu
 
 
 async def post_shutdown(app: Application):
@@ -356,9 +374,11 @@ def main():
     app.add_handler(CommandHandler("list", list_cmd))
     app.add_handler(CommandHandler("done", done_cmd))
     app.add_handler(CommandHandler("report", report_cmd))
+    app.add_handler(CommandHandler("help", help_cmd))
     app.add_handler(CallbackQueryHandler(report_button, pattern=r"^report:(30|90|all)$"))
     app.add_handler(CallbackQueryHandler(done_button, pattern=r"^done:"))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND & filters.ChatType.PRIVATE, text_handler))
+    app.add_handler(MessageHandler(filters.COMMAND, unknown_cmd))  # must stay last: catches unmatched commands
 
     app.job_queue.run_repeating(check_job, interval=CHECK_INTERVAL, first=10)
     # python-telegram-bot: days are 0-6 = Sunday-Saturday, so 6 is Saturday.
