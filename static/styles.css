@@ -239,7 +239,7 @@ button:disabled { background: var(--btn-disabled); color: var(--muted); cursor: 
 #oldest-tasks-list { display: flex; flex-direction: column; gap: 8px; }
 .oldest-task { display: flex; align-items: center; gap: 8px; padding: 5px 8px; border: var(--border); }
 .oldest-text { min-width: 0; }
-.oldest-task-title { overflow-wrap: anywhere; line-height: 1.1; }
+.oldest-task-title { font-size: 18px; overflow-wrap: anywhere; line-height: 1.1; }   /* same as .highlight-name */
 .oldest-task-info { font-family: var(--font-small); font-weight: 500; font-size: 18px; line-height: 1; color: var(--muted); }
 
 .highlight { display: flex; align-items: center; gap: 8px; padding: 6px 8px; background: var(--cream); border: var(--border); }
@@ -273,6 +273,7 @@ button:disabled { background: var(--btn-disabled); color: var(--muted); cursor: 
     .highlight-icon { width: 32px; height: 32px; }
     .highlight-name { font-size: 16px; }
     .oldest-task { padding: 4px 6px; gap: 6px; }
+    .oldest-task-title { font-size: 16px; }
 }
 
 /* short screens (Raspberry Pi 800x480): compact header and spacing, still two columns */
